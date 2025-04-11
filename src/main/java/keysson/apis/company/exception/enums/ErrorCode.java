@@ -1,0 +1,27 @@
+package keysson.apis.company.exception.enums;
+
+import org.springframework.http.HttpStatus;
+
+public enum ErrorCode {
+
+    CNPJ_JA_CADASTRADO("Empresa com este CNPJ já está cadastrada.", HttpStatus.BAD_REQUEST),
+    EMAIL_INVALIDO("O e-mail informado é inválido.", HttpStatus.BAD_REQUEST),
+    EMPRESA_NAO_ENCONTRADA("Empresa não encontrada.", HttpStatus.NOT_FOUND),
+    ERRO_INTERNO("Erro interno no servidor.", HttpStatus.INTERNAL_SERVER_ERROR);
+
+    private final String message;
+    private final HttpStatus status;
+
+    ErrorCode(String message, HttpStatus status) {
+        this.message = message;
+        this.status = status;
+    }
+
+    public String getMessage() {
+        return message;
+    }
+
+    public HttpStatus getStatus() {
+        return status;
+    }
+}
