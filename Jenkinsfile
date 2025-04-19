@@ -3,8 +3,7 @@ pipeline {
 
     environment {
         DOCKERHUB_IMAGE = "keyssong/company"
-        IMAGE_TAG = "build-${BUILD_NUMBER}"
-        DEPLOYMENT_FILE = "k8s\\deployment.yaml"
+        DEPLOYMENT_FILE = "k8s\\company-deployment.yaml"
     }
 
     triggers {
@@ -31,31 +30,30 @@ pipeline {
 
         stage('Build da Imagem Docker') {
             steps {
-                bat "docker build -t %DOCKERHUB_IMAGE%:%IMAGE_TAG% ."
-                bat "docker tag %DOCKERHUB_IMAGE%:%IMAGE_TAG% %DOCKERHUB_IMAGE%:latest"
+                bat "docker build -t %DOCKERHUB_IMAGE%:latest ."
             }
         }
 
         stage('Push da Imagem para Docker Hub') {
             steps {
-                withCredentials([usernamePassword(credentialsId: 'dockerhub-cred', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+                withCredentials([usernamePassword(credentialsId: 'dockerhub', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
                     bat """
                         echo %DOCKER_PASS% | docker login -u %DOCKER_USER% --password-stdin
-                        docker push %DOCKERHUB_IMAGE%:%IMAGE_TAG%
                         docker push %DOCKERHUB_IMAGE%:latest
                     """
                 }
             }
         }
 
-        stage('Atualizar deployment.yaml com nova tag') {
+        stage('Atualizar deployment.yaml') {
             steps {
                 bat """
-                    powershell -Command "(Get-Content %DEPLOYMENT_FILE%) -replace 'image: .*', 'image: %DOCKERHUB_IMAGE%:%IMAGE_TAG%' | Set-Content %DEPLOYMENT_FILE%"
+                    powershell -Command "(Get-Content %DEPLOYMENT_FILE%) -replace 'image: .*', 'image: %DOCKERHUB_IMAGE%:latest' | Set-Content %DEPLOYMENT_FILE%"
                     git config user.email "jenkins@pipeline.com"
                     git config user.name "Jenkins"
                     git add %DEPLOYMENT_FILE%
-                    git commit -m "Atualiza imagem Docker para %IMAGE_TAG%"
+                    git commit -m "Atualiza imagem Docker para latest" || echo "Nenhuma alteração para commitar."
+                    git pull origin master --rebase || echo "Nenhuma atualização necessária no branch remoto."
                     git push origin master
                 """
             }
@@ -64,7 +62,7 @@ pipeline {
 
     post {
         success {
-            echo "Deploy atualizado com sucesso! O ArgoCD aplicará as alterações automaticamente. 🚀"
+            echo "Pipeline concluída com sucesso! A imagem 'keyssong/company:latest' foi atualizada e o ArgoCD aplicará as alterações automaticamente. 🚀"
         }
         failure {
             echo "Erro na pipeline. Confira os logs para detalhes."
