@@ -66,16 +66,17 @@ pipeline {
                     } else {
                         git commit -m "Atualiza imagem Docker para latest"
                         try {
+                            # Aqui, usamos um try/catch para lidar com qualquer erro no pull.
                             git pull origin master --rebase
+                            Write-Host "Git pull foi bem-sucedido ou não foi necessário."
                         } catch {
-                            Write-Host "Falha ao sincronizar com o branch remoto."
+                            Write-Host "Falha ao sincronizar com o branch remoto ou não há atualizações."
                         }
                         git push origin master --quiet
                     }
                 """
             }
         }
-
 
     }
 
