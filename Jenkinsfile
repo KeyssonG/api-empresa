@@ -2,32 +2,44 @@ pipeline {
     agent any
 
     environment {
-        IMAGE_NAME = 'keyssong/company'
-        TAG = "build-${BUILD_NUMBER}"
+        DOCKERHUB_IMAGE = "keyssong/company"
+        DEPLOYMENT_FILE = "k8s\\company-deployment.yaml"
+    }
+
+    triggers {
+        pollSCM('* * * * *')
     }
 
     stages {
-        stage('Build Java') {
+        stage('Verificar Branch') {
+            when {
+                branch 'master'
+            }
             steps {
-                bat 'mvn clean package -DskipTests'
+                echo "Executando pipeline na branch master"
             }
         }
 
-        stage('Build Docker Image') {
+        stage('Checkout do Código') {
             steps {
-                bat """
-                docker build -t %IMAGE_NAME%:%TAG% -t %IMAGE_NAME%:latest .
-                """
+                git credentialsId: 'git-credencial-id',
+                    url: 'https://github.com/KeyssonG/company.git',
+                    branch: 'master'
             }
         }
 
-        stage('Push Docker Image') {
+        stage('Build da Imagem Docker') {
             steps {
-                withCredentials([usernamePassword(credentialsId: 'dockerhub-credentials', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+                bat "docker build -t %DOCKERHUB_IMAGE%:latest ."
+            }
+        }
+
+        stage('Push da Imagem para Docker Hub') {
+            steps {
+                withCredentials([usernamePassword(credentialsId: 'dockerhub', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
                     bat """
-                    echo %DOCKER_PASS% | docker login -u %DOCKER_USER% --password-stdin
-                    docker push %IMAGE_NAME%:%TAG%
-                    docker push %IMAGE_NAME%:latest
+                        echo %DOCKER_PASS% | docker login -u %DOCKER_USER% --password-stdin
+                        docker push %DOCKERHUB_IMAGE%:latest
                     """
                 }
             }
@@ -36,19 +48,12 @@ pipeline {
         stage('Atualizar deployment.yaml com nova tag') {
             steps {
                 bat """
-                powershell -Command "(Get-Content k8s\\deployment.yaml) -replace 'image: .*', 'image: %IMAGE_NAME%:%TAG%' | Set-Content k8s\\deployment.yaml"
-                """
-            }
-        }
-
-        stage('Commit e Push do Manifesto') {
-            steps {
-                bat """
-                git config user.name "Jenkins"
-                git config user.email "jenkins@example.com"
-                git add k8s\\deployment.yaml
-                git commit -m "Atualiza imagem para %IMAGE_NAME%:%TAG%"
-                git push origin homol
+                    powershell -Command "(Get-Content %DEPLOYMENT_FILE%) -replace 'image: .*', 'image: %DOCKERHUB_IMAGE%:latest' | Set-Content %DEPLOYMENT_FILE%"
+                    git config user.email "jenkins@pipeline.com"
+                    git config user.name "Jenkins"
+                    git add %DEPLOYMENT_FILE%
+                    git commit -m "Atualiza imagem Docker para latest"
+                    git push origin master
                 """
             }
         }
@@ -56,10 +61,10 @@ pipeline {
 
     post {
         success {
-            echo 'Pipeline executada com sucesso. Imagem Docker publicada e manifesto atualizado.'
+            echo "Pipeline concluída com sucesso! A imagem 'keyssong/company:latest' foi atualizada e o ArgoCD aplicará as alterações automaticamente. 🚀"
         }
         failure {
-            echo 'Erro na pipeline. Confira os logs para detalhes.'
+            echo "Erro na pipeline. Confira os logs para detalhes."
         }
     }
 }
