@@ -50,33 +50,35 @@ pipeline {
 
         stage('Atualizar deployment.yaml') {
             steps {
-                powershell """
-                    \$content = Get-Content ${DEPLOYMENT_FILE}
-                    \$newContent = \$content -replace 'image: .*', 'image: ${DOCKERHUB_IMAGE}:${IMAGE_TAG}'
-                    if (-not (\$content -eq \$newContent)) {
-                        \$newContent | Set-Content ${DEPLOYMENT_FILE}
-                    }
+                script {
+                    // Verifica se houve modificações no arquivo antes de realizar o commit
+                    def commitSuccess = false
 
-                    git config user.email "jenkins@pipeline.com"
-                    git config user.name "Jenkins"
-                    git add ${DEPLOYMENT_FILE}
+                    // Atualiza o arquivo de deployment.yaml com a nova imagem Docker
+                    bat """
+                        powershell -Command "\$content = Get-Content %DEPLOYMENT_FILE%; \$newContent = \$content -replace 'image: .*', 'image: %DOCKERHUB_IMAGE%:%IMAGE_TAG%'; if (-not (\$content -eq \$newContent)) { \$newContent | Set-Content %DEPLOYMENT_FILE% }"
+                    """
 
-                    if (git diff --cached --quiet) {
-                        Write-Host "Nenhuma alteração para commit."
+                    // Verifica se houve alteração no arquivo e faz commit
+                    bat """
+                        git config user.email "jenkins@pipeline.com"
+                        git config user.name "Jenkins"
+                        git add %DEPLOYMENT_FILE%
+                        git diff --cached --quiet || git commit -m "Atualiza imagem Docker para latest"
+                    """
+
+                    // Verifica se o commit foi realizado com sucesso
+                    commitSuccess = sh(script: 'git diff --cached --quiet || echo "changed"', returnStdout: true).trim() == "changed"
+
+                    if (commitSuccess) {
+                        echo "Alterações no arquivo de deployment detectadas. Commit realizado."
                     } else {
-                        git commit -m "Atualiza imagem Docker para latest"
-                        try {
-                            # Aqui, usamos um try/catch para lidar com qualquer erro no pull.
-                            git pull origin master --rebase
-                            Write-Host "Git pull foi bem-sucedido ou não foi necessário."
-                        } catch {
-                            Write-Host "Falha ao sincronizar com o branch remoto ou não há atualizações."
-                        }
-                        git push origin master --quiet
+                        echo "Nenhuma alteração detectada no arquivo de deployment. Não foi realizado commit."
                     }
-                """
+                }
             }
         }
+
 
     }
 
