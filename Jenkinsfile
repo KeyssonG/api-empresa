@@ -45,7 +45,7 @@ pipeline {
             }
         }
 
-        stage('Atualizar deployment.yaml com nova tag') {
+        stage('Atualizar deployment.yaml') {
             steps {
                 bat """
                     powershell -Command "(Get-Content %DEPLOYMENT_FILE%) -replace 'image: .*', 'image: %DOCKERHUB_IMAGE%:latest' | Set-Content %DEPLOYMENT_FILE%"
