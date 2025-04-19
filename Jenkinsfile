@@ -4,11 +4,10 @@ pipeline {
     environment {
         DOCKERHUB_IMAGE = "keyssong/company"
         IMAGE_TAG = "build-${BUILD_NUMBER}"
-        DEPLOYMENT_FILE = "k8s/deployment.yaml"
+        DEPLOYMENT_FILE = "k8s\\deployment.yaml"
     }
 
     triggers {
-
         pollSCM('* * * * *')
     }
 
@@ -32,18 +31,18 @@ pipeline {
 
         stage('Build da Imagem Docker') {
             steps {
-                sh "docker build -t ${DOCKERHUB_IMAGE}:${IMAGE_TAG} ."
-                sh "docker tag ${DOCKERHUB_IMAGE}:${IMAGE_TAG} ${DOCKERHUB_IMAGE}:latest"
+                bat "docker build -t %DOCKERHUB_IMAGE%:%IMAGE_TAG% ."
+                bat "docker tag %DOCKERHUB_IMAGE%:%IMAGE_TAG% %DOCKERHUB_IMAGE%:latest"
             }
         }
 
         stage('Push da Imagem para Docker Hub') {
             steps {
                 withCredentials([usernamePassword(credentialsId: 'dockerhub-cred', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
-                    sh """
-                        echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
-                        docker push ${DOCKERHUB_IMAGE}:${IMAGE_TAG}
-                        docker push ${DOCKERHUB_IMAGE}:latest
+                    bat """
+                        echo %DOCKER_PASS% | docker login -u %DOCKER_USER% --password-stdin
+                        docker push %DOCKERHUB_IMAGE%:%IMAGE_TAG%
+                        docker push %DOCKERHUB_IMAGE%:latest
                     """
                 }
             }
@@ -51,12 +50,12 @@ pipeline {
 
         stage('Atualizar deployment.yaml com nova tag') {
             steps {
-                sh """
-                    sed -i 's|image: .*|image: ${DOCKERHUB_IMAGE}:${IMAGE_TAG}|' ${DEPLOYMENT_FILE}
+                bat """
+                    powershell -Command "(Get-Content %DEPLOYMENT_FILE%) -replace 'image: .*', 'image: %DOCKERHUB_IMAGE%:%IMAGE_TAG%' | Set-Content %DEPLOYMENT_FILE%"
                     git config user.email "jenkins@pipeline.com"
                     git config user.name "Jenkins"
-                    git add ${DEPLOYMENT_FILE}
-                    git commit -m "Atualiza imagem Docker para ${IMAGE_TAG}"
+                    git add %DEPLOYMENT_FILE%
+                    git commit -m "Atualiza imagem Docker para %IMAGE_TAG%"
                     git push origin master
                 """
             }
