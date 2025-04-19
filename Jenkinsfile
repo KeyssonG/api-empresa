@@ -11,6 +11,10 @@ pipeline {
         pollSCM('* * * * *')
     }
 
+    options {
+        disableConcurrentBuilds()
+    }
+
     stages {
         stage('Verificar Branch') {
             when {
@@ -57,7 +61,7 @@ pipeline {
                             git add %DEPLOYMENT_FILE%
                             git commit -m "Atualiza imagem Docker para latest" || echo "Nenhuma alteração para commitar."
                             git pull origin master --rebase || echo "Falha ao sincronizar com o branch remoto."
-                            git push origin master --force-with-lease
+                            git push origin master --quiet
                         """
                     }
                 }
