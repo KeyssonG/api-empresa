@@ -1,28 +1,27 @@
 # Etapa 1: Build da aplicação Java
 FROM maven:3.9.9-amazoncorretto-21 AS builder
 
-# Defina o diretório de trabalho
+# Define o diretório de trabalho
 WORKDIR /app
 
-# Copiar os arquivos do projeto
-COPY company /app/company
+# Copia todo o conteúdo do projeto (inclusive pom.xml e src)
+COPY . .
 
-# Rodar o build
-RUN mvn -f /app/company/pom.xml clean package
+# Executa o build do projeto
+RUN mvn clean package -DskipTests
 
-# Renomear o arquivo JAR para cii-modas.jar
-RUN mv /app/company/target/*.jar /app/sistema/target/company.jar
+# Renomeia o JAR gerado
+RUN mv target/*.jar /app/company.jar
 
-# Etapa 2: Imagem de execução
-FROM amazoncorretto:21 AS runtime
+# Etapa 2: Imagem final para execução
+FROM amazoncorretto:21
 
-# Defina o diretório de trabalho
 WORKDIR /app
 
-# Copiar o JAR gerado da etapa de build
-COPY --from=builder /app/company/target/company.jar /app/company.jar
+# Copia o JAR da etapa de build
+COPY --from=builder /app/company.jar /app/company.jar
 
-# Expor a porta da aplicação
+# Expõe a porta da aplicação
 EXPOSE 8083
 
 # Comando de inicialização
