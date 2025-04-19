@@ -35,7 +35,7 @@ pipeline {
 
         stage('Build da Imagem Docker') {
             steps {
-                    bat "docker build -t %DOCKERHUB_IMAGE%:%IMAGE_TAG% ."
+                bat "docker build -t %DOCKERHUB_IMAGE%:%IMAGE_TAG% ."
                 bat "docker tag %DOCKERHUB_IMAGE%:%IMAGE_TAG% %DOCKERHUB_IMAGE%:latest"
             }
         }
@@ -53,18 +53,31 @@ pipeline {
         }
 
         stage('Atualizar deployment.yaml') {
-                    steps {
-                        bat """
-                            powershell -Command "(Get-Content %DEPLOYMENT_FILE%) -replace 'image: .*', 'image: %DOCKERHUB_IMAGE%:%IMAGE_TAG%' | Set-Content %DEPLOYMENT_FILE%"
-                            git config user.email "jenkins@pipeline.com"
-                            git config user.name "Jenkins"
-                            git add %DEPLOYMENT_FILE%
-                            git commit -m "Atualiza imagem Docker para latest" || echo "Nenhuma alteração para commitar."
-                            git pull origin master --rebase || echo "Falha ao sincronizar com o branch remoto."
-                            git push origin master --quiet
-                        """
+            steps {
+                script {
+                    def commitSuccess = false
+
+                    bat """
+                        powershell -Command "\$content = Get-Content '${DEPLOYMENT_FILE}'; \$newContent = \$content -replace 'image: .*', 'image: ${DOCKERHUB_IMAGE}:${IMAGE_TAG}'; if (-not (\$content -eq \$newContent)) { \$newContent | Set-Content '${DEPLOYMENT_FILE}' }"
+                    """
+
+                    bat """
+                        git config user.email "jenkins@pipeline.com"
+                        git config user.name "Jenkins"
+                        git add "${DEPLOYMENT_FILE}"
+                        git diff --cached --quiet || git commit -m 'Atualiza imagem Docker para latest'
+                    """
+
+                    commitSuccess = bat(script: 'git diff --cached --quiet || echo "changed"', returnStdout: true).trim() == "changed"
+
+                    if (commitSuccess) {
+                        echo "Alterações no arquivo de deployment detectadas. Commit realizado."
+                    } else {
+                        echo "Nenhuma alteração detectada no arquivo de deployment. Não foi realizado commit."
                     }
                 }
+            }
+        }
     }
 
     post {
@@ -72,7 +85,7 @@ pipeline {
             echo "Pipeline concluída com sucesso! A imagem 'keyssong/company:latest' foi atualizada e o ArgoCD aplicará as alterações automaticamente. 🚀"
         }
         failure {
-            echo "Erro na pipeline. Confira os logs para detalhes."
+            echo "Erro na pipeline. Confira os logs para mais detalhes."
         }
     }
 }
