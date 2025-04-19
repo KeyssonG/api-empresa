@@ -4,6 +4,7 @@ pipeline {
     environment {
         DOCKERHUB_IMAGE = "keyssong/company"
         DEPLOYMENT_FILE = "k8s\\company-deployment.yaml"
+        IMAGE_TAG = "latest"
     }
 
     triggers {
@@ -30,7 +31,7 @@ pipeline {
 
         stage('Build da Imagem Docker') {
             steps {
-                bat "docker build -t %DOCKERHUB_IMAGE%:%IMAGE_TAG% ."
+                    bat "docker build -t %DOCKERHUB_IMAGE%:%IMAGE_TAG% ."
                 bat "docker tag %DOCKERHUB_IMAGE%:%IMAGE_TAG% %DOCKERHUB_IMAGE%:latest"
             }
         }
