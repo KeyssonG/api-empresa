@@ -48,19 +48,19 @@ pipeline {
             }
         }
 
-        stage('Atualizar deployment.yaml com nova tag') {
-            steps {
-                bat """
-                    powershell -Command "(Get-Content %DEPLOYMENT_FILE%) -replace 'image: .*', 'image: %DOCKERHUB_IMAGE%:%IMAGE_TAG%' | Set-Content %DEPLOYMENT_FILE%"
-                    git config user.email "jenkins@pipeline.com"
-                    git config user.name "Jenkins"
-                    git add %DEPLOYMENT_FILE%
-                    git commit -m "Atualiza imagem Docker para latest" || echo "Nenhuma alteração para commitar."
-                    git pull origin master --rebase || echo "Nenhuma atualização necessária no branch remoto."
-                    git push origin master
-                """
-            }
-        }
+        stage('Atualizar deployment.yaml') {
+                    steps {
+                        bat """
+                            powershell -Command "(Get-Content %DEPLOYMENT_FILE%) -replace 'image: .*', 'image: %DOCKERHUB_IMAGE%:%IMAGE_TAG%' | Set-Content %DEPLOYMENT_FILE%"
+                            git config user.email "jenkins@pipeline.com"
+                            git config user.name "Jenkins"
+                            git add %DEPLOYMENT_FILE%
+                            git commit -m "Atualiza imagem Docker para latest" || echo "Nenhuma alteração para commitar."
+                            git pull origin master --rebase || echo "Falha ao sincronizar com o branch remoto."
+                            git push origin master --force-with-lease
+                        """
+                    }
+                }
     }
 
     post {
