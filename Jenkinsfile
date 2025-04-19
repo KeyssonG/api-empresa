@@ -7,10 +7,6 @@ pipeline {
         IMAGE_TAG = "latest"
     }
 
-    triggers {
-        pollSCM('* * * * *')
-    }
-
     options {
         disableConcurrentBuilds()
     }
