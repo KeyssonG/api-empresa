@@ -68,6 +68,10 @@ pipeline {
         }
         failure {
             echo "Erro na pipeline. Confira os logs para detalhes."
+            // Se necessário, pode incluir uma etapa de rollback ou notificação de erro aqui.
+        }
+        always {
+            echo "Pipeline concluída."
         }
     }
 }
