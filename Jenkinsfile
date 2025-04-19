@@ -23,7 +23,7 @@ pipeline {
 
         stage('Checkout do Código') {
             steps {
-                git credentialsId: 'git-credencial-id',
+                git credentialsId: 'Github',
                     url: 'https://github.com/KeyssonG/company.git',
                     branch: 'master'
             }
@@ -38,7 +38,7 @@ pipeline {
 
         stage('Push da Imagem para Docker Hub') {
             steps {
-                withCredentials([usernamePassword(credentialsId: 'dockerhub-cred', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+                withCredentials([usernamePassword(credentialsId: 'dockerhub', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
                     bat """
                         echo %DOCKER_PASS% | docker login -u %DOCKER_USER% --password-stdin
                         docker push %DOCKERHUB_IMAGE%:%IMAGE_TAG%
