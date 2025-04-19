@@ -7,6 +7,10 @@ pipeline {
         IMAGE_TAG = "latest"
     }
 
+    triggers {
+        pollSCM('* * * * *')
+    }
+
     options {
         disableConcurrentBuilds()
     }
@@ -31,7 +35,7 @@ pipeline {
 
         stage('Build da Imagem Docker') {
             steps {
-                    bat "docker build -t %DOCKERHUB_IMAGE%:%IMAGE_TAG% ."
+                bat "docker build -t %DOCKERHUB_IMAGE%:%IMAGE_TAG% ."
                 bat "docker tag %DOCKERHUB_IMAGE%:%IMAGE_TAG% %DOCKERHUB_IMAGE%:latest"
             }
         }
@@ -72,6 +76,8 @@ pipeline {
                         echo "Nenhuma alteração detectada no arquivo de deployment. Não foi realizado commit."
                     }
                 }
+            }
+        }
     }
 
     post {
@@ -79,7 +85,7 @@ pipeline {
             echo "Pipeline concluída com sucesso! A imagem 'keyssong/company:latest' foi atualizada e o ArgoCD aplicará as alterações automaticamente. 🚀"
         }
         failure {
-            echo "Erro na pipeline. Confira os logs para detalhes."
+            echo "Erro na pipeline. Confira os logs para mais detalhes."
         }
     }
 }
