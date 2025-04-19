@@ -1,0 +1,20 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: company-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: company
+  template:
+    metadata:
+      labels:
+        app: company
+    spec:
+      containers:
+        - name: company-container
+          image: keyssong/company:latest  # 🔹 Buscar no Docker Hub
+          imagePullPolicy: Always           # 🔹 Sempre buscar a versão mais recente
+          ports:
+            - containerPort: 8085
