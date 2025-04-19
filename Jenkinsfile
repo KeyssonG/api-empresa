@@ -31,8 +31,8 @@ pipeline {
 
         stage('Build da Imagem Docker') {
             steps {
-                    bat "docker build -t %DOCKERHUB_IMAGE%:%IMAGE_TAG% ."
-                bat "docker tag %DOCKERHUB_IMAGE%:%IMAGE_TAG% %DOCKERHUB_IMAGE%:latest"
+                bat "docker build -t ${DOCKERHUB_IMAGE}:${IMAGE_TAG} ."
+                bat "docker tag ${DOCKERHUB_IMAGE}:${IMAGE_TAG} ${DOCKERHUB_IMAGE}:latest"
             }
         }
 
@@ -40,9 +40,9 @@ pipeline {
             steps {
                 withCredentials([usernamePassword(credentialsId: 'dockerhub', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
                     bat """
-                        echo %DOCKER_PASS% | docker login -u %DOCKER_USER% --password-stdin
-                        docker push %DOCKERHUB_IMAGE%:%IMAGE_TAG%
-                        docker push %DOCKERHUB_IMAGE%:latest
+                        echo ${DOCKER_PASS} | docker login -u ${DOCKER_USER} --password-stdin
+                        docker push ${DOCKERHUB_IMAGE}:${IMAGE_TAG}
+                        docker push ${DOCKERHUB_IMAGE}:latest
                     """
                 }
             }
@@ -50,16 +50,21 @@ pipeline {
 
         stage('Atualizar deployment.yaml') {
             steps {
-                bat """
-                    powershell -Command "$content = Get-Content %DEPLOYMENT_FILE%; $newContent = $content -replace 'image: .*', 'image: %DOCKERHUB_IMAGE%:%IMAGE_TAG%'; if (-not ($content -eq $newContent)) { $newContent | Set-Content %DEPLOYMENT_FILE% }"
+                powershell """
+                    \$content = Get-Content ${DEPLOYMENT_FILE}
+                    \$newContent = \$content -replace 'image: .*', 'image: ${DOCKERHUB_IMAGE}:${IMAGE_TAG}'
+                    if (-not (\$content -eq \$newContent)) {
+                        \$newContent | Set-Content ${DEPLOYMENT_FILE}
+                    }
 
                     git config user.email "jenkins@pipeline.com"
                     git config user.name "Jenkins"
-                    git add %DEPLOYMENT_FILE%
+                    git add ${DEPLOYMENT_FILE}
 
                     git diff --cached --quiet || (
                         git commit -m "Atualiza imagem Docker para latest"
                         git pull origin master --rebase || echo "Falha ao sincronizar com o branch remoto."
+                        git status
                         git push origin master --quiet
                     )
                 """
@@ -73,7 +78,7 @@ pipeline {
             echo "Pipeline concluída com sucesso! A imagem 'keyssong/company:latest' foi atualizada e o ArgoCD aplicará as alterações automaticamente. 🚀"
         }
         failure {
-            echo "Erro na pipeline. Confira os logs para detalhes."
+            echo "Erro na pipeline. Confira os logs para mais detalhes."
         }
     }
 }
