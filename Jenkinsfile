@@ -4,7 +4,7 @@ pipeline {
     environment {
         DOCKERHUB_IMAGE = "keyssong/company"
         IMAGE_TAG = "build-${BUILD_NUMBER}"
-        DEPLOYMENT_FILE = "k8s\\deployment.yaml"
+        DEPLOYMENT_FILE = "k8s\\company-deployment.yaml"
     }
 
     triggers {
