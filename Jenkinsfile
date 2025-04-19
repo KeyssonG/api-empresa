@@ -61,15 +61,21 @@ pipeline {
                     git config user.name "Jenkins"
                     git add ${DEPLOYMENT_FILE}
 
-                    git diff --cached --quiet || (
+                    if (git diff --cached --quiet) {
+                        Write-Host "Nenhuma alteração para commit."
+                    } else {
                         git commit -m "Atualiza imagem Docker para latest"
-                        git pull origin master --rebase || echo "Falha ao sincronizar com o branch remoto."
-                        git status
+                        try {
+                            git pull origin master --rebase
+                        } catch {
+                            Write-Host "Falha ao sincronizar com o branch remoto."
+                        }
                         git push origin master --quiet
-                    )
+                    }
                 """
             }
         }
+
 
     }
 
