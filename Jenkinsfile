@@ -37,13 +37,26 @@ pipeline {
             }
         }
 
+        stage('Remover Imagem Anterior do Docker Hub') {
+            steps {
+                withCredentials([usernamePassword(credentialsId: 'dockerhub', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+                    bat """
+                        echo %DOCKER_PASS% | docker login -u %DOCKER_USER% --password-stdin
+                        // Remover a imagem anterior com a tag 'latest' no Docker Hub, caso exista
+                        docker rmi %DOCKERHUB_IMAGE%:latest || true
+                    """
+                }
+            }
+        }
+
         stage('Push da Imagem para Docker Hub') {
             steps {
                 withCredentials([usernamePassword(credentialsId: 'dockerhub', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
                     bat """
                         echo %DOCKER_PASS% | docker login -u %DOCKER_USER% --password-stdin
-                        docker push %DOCKERHUB_IMAGE%:latest // Empurra sempre a tag latest
-                        docker push %DOCKERHUB_IMAGE%:%IMAGE_TAG% // Empurra a tag de build, se necessário
+                        // Empurrar a imagem com a tag 'latest', substituindo a versão anterior
+                        docker push %DOCKERHUB_IMAGE%:latest
+                        docker push %DOCKERHUB_IMAGE%:%IMAGE_TAG% // Empurrar a tag de build, se necessário
                     """
                 }
             }
