@@ -31,8 +31,8 @@ pipeline {
 
         stage('Build da Imagem Docker') {
             steps {
-                bat "docker build -t ${DOCKERHUB_IMAGE}:${IMAGE_TAG} ."
-                bat "docker tag ${DOCKERHUB_IMAGE}:${IMAGE_TAG} ${DOCKERHUB_IMAGE}:latest"
+                    bat "docker build -t %DOCKERHUB_IMAGE%:%IMAGE_TAG% ."
+                bat "docker tag %DOCKERHUB_IMAGE%:%IMAGE_TAG% %DOCKERHUB_IMAGE%:latest"
             }
         }
 
@@ -40,9 +40,9 @@ pipeline {
             steps {
                 withCredentials([usernamePassword(credentialsId: 'dockerhub', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
                     bat """
-                        echo ${DOCKER_PASS} | docker login -u ${DOCKER_USER} --password-stdin
-                        docker push ${DOCKERHUB_IMAGE}:${IMAGE_TAG}
-                        docker push ${DOCKERHUB_IMAGE}:latest
+                        echo %DOCKER_PASS% | docker login -u %DOCKER_USER% --password-stdin
+                        docker push %DOCKERHUB_IMAGE%:%IMAGE_TAG%
+                        docker push %DOCKERHUB_IMAGE%:latest
                     """
                 }
             }
@@ -51,24 +51,20 @@ pipeline {
         stage('Atualizar deployment.yaml') {
             steps {
                 script {
-                    // Verifica se houve modificações no arquivo antes de realizar o commit
                     def commitSuccess = false
 
-                    // Atualiza o arquivo de deployment.yaml com a nova imagem Docker
                     bat """
-                        powershell -Command "\$content = Get-Content %DEPLOYMENT_FILE%; \$newContent = \$content -replace 'image: .*', 'image: %DOCKERHUB_IMAGE%:%IMAGE_TAG%'; if (-not (\$content -eq \$newContent)) { \$newContent | Set-Content %DEPLOYMENT_FILE% }"
+                        powershell -Command "\$content = Get-Content '${DEPLOYMENT_FILE}'; \$newContent = \$content -replace 'image: .*', 'image: ${DOCKERHUB_IMAGE}:${IMAGE_TAG}'; if (-not (\$content -eq \$newContent)) { \$newContent | Set-Content '${DEPLOYMENT_FILE}' }"
                     """
 
-                    // Verifica se houve alteração no arquivo e faz commit
                     bat """
                         git config user.email "jenkins@pipeline.com"
                         git config user.name "Jenkins"
-                        git add %DEPLOYMENT_FILE%
-                        git diff --cached --quiet || git commit -m "Atualiza imagem Docker para latest"
+                        git add "${DEPLOYMENT_FILE}"
+                        git diff --cached --quiet || git commit -m 'Atualiza imagem Docker para latest'
                     """
 
-                    // Verifica se o commit foi realizado com sucesso
-                    commitSuccess = sh(script: 'git diff --cached --quiet || echo "changed"', returnStdout: true).trim() == "changed"
+                    commitSuccess = bat(script: 'git diff --cached --quiet || echo "changed"', returnStdout: true).trim() == "changed"
 
                     if (commitSuccess) {
                         echo "Alterações no arquivo de deployment detectadas. Commit realizado."
@@ -76,10 +72,6 @@ pipeline {
                         echo "Nenhuma alteração detectada no arquivo de deployment. Não foi realizado commit."
                     }
                 }
-            }
-        }
-
-
     }
 
     post {
@@ -87,7 +79,7 @@ pipeline {
             echo "Pipeline concluída com sucesso! A imagem 'keyssong/company:latest' foi atualizada e o ArgoCD aplicará as alterações automaticamente. 🚀"
         }
         failure {
-            echo "Erro na pipeline. Confira os logs para mais detalhes."
+            echo "Erro na pipeline. Confira os logs para detalhes."
         }
     }
 }

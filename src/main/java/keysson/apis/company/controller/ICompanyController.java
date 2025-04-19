@@ -34,4 +34,5 @@ public interface ICompanyController {
         }
     )
     void register(@RequestBody RequestRegisterCompany requestRegisterCompany) throws BusinessRuleException;
+
 }
