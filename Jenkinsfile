@@ -2,8 +2,8 @@ pipeline {
     agent any
 
     environment {
-        DOCKERHUB_IMAGE = "keyssong/company"
-        DEPLOYMENT_FILE = "k8s\\company-deployment.yaml"
+        DOCKERHUB_IMAGE = "keyssong/empresa"
+        DEPLOYMENT_FILE = "k8s\\empresa-deployment.yaml"
         IMAGE_TAG = "latest"
     }
 
@@ -28,7 +28,7 @@ pipeline {
         stage('Checkout do Código') {
             steps {
                 git credentialsId: 'Github',
-                    url: 'https://github.com/KeyssonG/company.git',
+                    url: 'https://github.com/KeyssonG/api-empresa.git',
                     branch: 'master'
             }
         }

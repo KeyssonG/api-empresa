@@ -8,6 +8,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.GenericGenerator;
 
+import java.util.Random;
 import java.util.UUID;
 
 @Entity
@@ -31,6 +32,9 @@ public class Company {
 
     @Column(nullable = false, unique = true, length = 18)
     private String cnpj;
+
+    @Column(nullable = false, unique = true)
+    private int numero_conta;
 
     @Column(nullable = false)
     private String password;
