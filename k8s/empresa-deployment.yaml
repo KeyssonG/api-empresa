@@ -6,15 +6,15 @@ spec:
   replicas: 1
   selector:
     matchLabels:
-      app: company
+      app: empresa
   template:
     metadata:
       labels:
-        app: company
+        app: empresa
     spec:
       containers:
-        - name: company-container
-          image: keyssong/company:latest  # 🔹 Buscar no Docker Hub
+        - name: empresa-container
+          image: keyssong/empresa:latest  # 🔹 Buscar no Docker Hub
           imagePullPolicy: Always           # 🔹 Sempre buscar a versão mais recente
           ports:
             - containerPort: 8085
