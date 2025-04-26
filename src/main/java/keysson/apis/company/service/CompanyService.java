@@ -9,12 +9,8 @@ import keysson.apis.company.exception.BusinessRuleException;
 import keysson.apis.company.exception.enums.ErrorCode;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.web.ErrorResponseException;
 
 import java.util.Random;
-import java.util.UUID;
-
-import static keysson.apis.company.exception.enums.ErrorCode.CNPJ_JA_CADASTRADO;
 
 @Service
 public class CompanyService {

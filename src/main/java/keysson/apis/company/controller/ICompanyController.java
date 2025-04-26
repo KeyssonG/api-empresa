@@ -6,9 +6,7 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import keysson.apis.company.dto.request.RequestRegisterCompany;
-import keysson.apis.company.entity.Company;
 import keysson.apis.company.exception.BusinessRuleException;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import io.swagger.v3.oas.annotations.parameters.RequestBody;
 
