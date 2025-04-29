@@ -1,50 +1,51 @@
 package keysson.apis.company.service;
 
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
-import jakarta.transaction.Transactional;
 import keysson.apis.company.dto.request.RequestRegisterCompany;
-import keysson.apis.company.entity.Company;
+import keysson.apis.company.dto.response.ResponseEmpresa;
 import keysson.apis.company.exception.BusinessRuleException;
 import keysson.apis.company.exception.enums.ErrorCode;
+import keysson.apis.company.repository.CompanyRepository;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.Random;
+import java.util.UUID;
 
 @Service
 public class CompanyService {
 
-    @PersistenceContext
-    private EntityManager entityManager;
+    private final CompanyRepository companyRepository;
+    private final BCryptPasswordEncoder passwordEncoder;
 
-    private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+    public CompanyService(CompanyRepository companyRepository) {
+        this.companyRepository = companyRepository;
+        this.passwordEncoder = new BCryptPasswordEncoder();
+    }
 
-    @Transactional
-    public Company registerCompany(RequestRegisterCompany requestRegisterCompany) throws BusinessRuleException {
+    public ResponseEmpresa registerCompany(RequestRegisterCompany requestRegisterCompany) throws BusinessRuleException {
 
-        var existing = entityManager
-                .createQuery("SELECT c FROM Company c WHERE c.cnpj = :cnpj", Company.class)
-                .setParameter("cnpj", requestRegisterCompany.getCnpj())
-                .getResultStream()
-                .findFirst();
-
-        if (existing.isPresent()) {
+        if (companyRepository.existsByCnpj(requestRegisterCompany.getCnpj())) {
             throw new BusinessRuleException(ErrorCode.CNPJ_JA_CADASTRADO);
         }
 
         int numeroConta = gerarNumeroContaUnico();
 
-        Company company = Company.builder()
-                .name(requestRegisterCompany.getName())
-                .cnpj(requestRegisterCompany.getCnpj())
-                .numero_conta(numeroConta)
-                .password(passwordEncoder.encode(requestRegisterCompany.getPassword()))
-                .status(1)
-                .build();
+        String encodedPassword = passwordEncoder.encode(requestRegisterCompany.getPassword());
 
-        entityManager.persist(company);
-        return company;
+        String consumerId = UUID.randomUUID().toString();
+
+        companyRepository.save(
+                requestRegisterCompany.getName(),
+                requestRegisterCompany.getCnpj(),
+                numeroConta,
+                encodedPassword,
+                1
+        );
+
+        return ResponseEmpresa.builder()
+                .nome(requestRegisterCompany.getName())
+                .conta(numeroConta)
+                .build();
     }
 
     private int gerarNumeroContaUnico() {
@@ -52,17 +53,9 @@ public class CompanyService {
         int numero;
 
         do {
-            numero = 100000 + random.nextInt(900000);
-        } while (numeroContaJaExiste(numero));
+            numero = 100000 + random.nextInt(900000); // número de 6 dígitos
+        } while (companyRepository.existsByNumeroConta(numero));
 
         return numero;
-    }
-
-    private boolean numeroContaJaExiste(int numero) {
-        Long count = entityManager
-                .createQuery("SELECT COUNT(c) FROM Company c WHERE c.numero_conta = :numero", Long.class)
-                .setParameter("numero", numero)
-                .getSingleResult();
-        return count > 0;
     }
 }
