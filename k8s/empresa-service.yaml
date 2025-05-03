@@ -4,9 +4,10 @@ metadata:
   name: empresa-service
 spec:
   selector:
-    app: empresa-deployment
+    app: empresa
   ports:
     - protocol: TCP
       port: 8085
       targetPort: 8085
+      nodPort: 31001
   type: LoadBalancer  # Ou NodePort
