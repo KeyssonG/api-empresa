@@ -27,8 +27,8 @@ public class CompanyRepository {
         """;
 
     private static final String INSERT_COMPANY = """
-        INSERT INTO companies (name, cnpj, numero_conta, password, username, status, consumer_id)
-        VALUES (?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO companies (name, cnpj, numero_conta, status, consumer_id)
+        VALUES (?, ?, ?, ?, ?)
         """;
 
     public boolean existsByCnpj(String cnpj) {
@@ -41,8 +41,8 @@ public class CompanyRepository {
         return count != null && count > 0;
     }
 
-    public void save(String name, String cnpj, int numeroConta, String password, String username, int status) {
+    public void save(String name, String cnpj, int numeroConta, int status) {
         UUID consumerId = UUID.randomUUID();
-        jdbcTemplate.update(INSERT_COMPANY, name, cnpj, numeroConta, password, username, status, consumerId);
+        jdbcTemplate.update(INSERT_COMPANY, name, cnpj, numeroConta, status, consumerId);
     }
 }

@@ -30,16 +30,12 @@ public class CompanyService {
 
         int numeroConta = gerarNumeroContaUnico();
 
-        String encodedPassword = passwordEncoder.encode(requestRegisterCompany.getPassword());
-
         String consumerId = UUID.randomUUID().toString();
 
         companyRepository.save(
                 requestRegisterCompany.getName(),
                 requestRegisterCompany.getCnpj(),
                 numeroConta,
-                encodedPassword,
-                requestRegisterCompany.getUsername(),
                 1
         );
 

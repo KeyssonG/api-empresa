@@ -4,7 +4,6 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.parameters.RequestBody;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import keysson.apis.empresa.dto.request.RequestRegisterCompany;
 import keysson.apis.empresa.dto.response.ResponseEmpresa;
 import keysson.apis.empresa.exception.BusinessRuleException;
@@ -23,12 +22,7 @@ public interface CompanyController {
                     content = @Content(
                             schema = @Schema(implementation = RequestRegisterCompany.class)
                     )
-            ),
-            responses = {
-                    @ApiResponse(responseCode = "201", description = "Empresa cadastrada com sucesso"),
-                    @ApiResponse(responseCode = "400", description = "Dados inválidos"),
-                    @ApiResponse(responseCode = "409", description = "Empresa com este CNPJ já existe")
-            }
+            )
     )
    public ResponseEmpresa register(@RequestBody RequestRegisterCompany requestRegisterCompany)
             throws BusinessRuleException;
