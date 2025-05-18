@@ -1,10 +1,10 @@
-package keysson.apis.company.service;
+package keysson.apis.empresa.service;
 
-import keysson.apis.company.dto.request.RequestRegisterCompany;
-import keysson.apis.company.dto.response.ResponseEmpresa;
-import keysson.apis.company.exception.BusinessRuleException;
-import keysson.apis.company.exception.enums.ErrorCode;
-import keysson.apis.company.repository.CompanyRepository;
+import keysson.apis.empresa.dto.request.RequestRegisterCompany;
+import keysson.apis.empresa.dto.response.ResponseEmpresa;
+import keysson.apis.empresa.exception.BusinessRuleException;
+import keysson.apis.empresa.exception.enums.ErrorCode;
+import keysson.apis.empresa.repository.CompanyRepository;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -39,6 +39,7 @@ public class CompanyService {
                 requestRegisterCompany.getCnpj(),
                 numeroConta,
                 encodedPassword,
+                requestRegisterCompany.getUsername(),
                 1
         );
 

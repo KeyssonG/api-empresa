@@ -1,4 +1,4 @@
-package keysson.apis.company.exception.handler;
+package keysson.apis.empresa.exception.handler;
 
 import lombok.Getter;
 import lombok.Setter;

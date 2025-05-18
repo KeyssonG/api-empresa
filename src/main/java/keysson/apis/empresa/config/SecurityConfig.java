@@ -1,4 +1,4 @@
-package keysson.apis.company.config;
+package keysson.apis.empresa.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

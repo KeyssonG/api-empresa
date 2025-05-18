@@ -1,6 +1,6 @@
-package keysson.apis.company.exception;
+package keysson.apis.empresa.exception;
 
-import keysson.apis.company.exception.enums.ErrorCode;
+import keysson.apis.empresa.exception.enums.ErrorCode;
 
 public class BusinessRuleException extends RuntimeException {
     private final ErrorCode errorCode;

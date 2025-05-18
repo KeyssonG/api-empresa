@@ -1,4 +1,4 @@
-package keysson.apis.company.config;
+package keysson.apis.empresa.config;
 
 import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.OpenAPI;

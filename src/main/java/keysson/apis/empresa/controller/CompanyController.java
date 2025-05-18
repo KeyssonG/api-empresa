@@ -1,13 +1,13 @@
-package keysson.apis.company.controller;
+package keysson.apis.empresa.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import keysson.apis.company.dto.request.RequestRegisterCompany;
-import keysson.apis.company.dto.response.ResponseEmpresa;
-import keysson.apis.company.exception.BusinessRuleException;
+import keysson.apis.empresa.dto.request.RequestRegisterCompany;
+import keysson.apis.empresa.dto.response.ResponseEmpresa;
+import keysson.apis.empresa.exception.BusinessRuleException;
 import org.springframework.web.bind.annotation.PostMapping;
 
 

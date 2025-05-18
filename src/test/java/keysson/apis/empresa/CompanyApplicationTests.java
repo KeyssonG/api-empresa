@@ -1,4 +1,4 @@
-package keysson.apis.company;
+package keysson.apis.empresa;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;

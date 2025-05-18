@@ -1,4 +1,4 @@
-package keysson.apis.company.exception.enums;
+package keysson.apis.empresa.exception.enums;
 
 import org.springframework.http.HttpStatus;
 

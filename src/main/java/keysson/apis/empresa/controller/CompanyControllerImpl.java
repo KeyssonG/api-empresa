@@ -1,8 +1,8 @@
-package keysson.apis.company.controller;
+package keysson.apis.empresa.controller;
 
-import keysson.apis.company.dto.request.RequestRegisterCompany;
-import keysson.apis.company.dto.response.ResponseEmpresa;
-import keysson.apis.company.service.CompanyService;
+import keysson.apis.empresa.dto.request.RequestRegisterCompany;
+import keysson.apis.empresa.dto.response.ResponseEmpresa;
+import keysson.apis.empresa.service.CompanyService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;

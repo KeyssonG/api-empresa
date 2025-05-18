@@ -1,11 +1,8 @@
-package keysson.apis.company.exception.handler;
+package keysson.apis.empresa.exception.handler;
 
-import keysson.apis.company.exception.BusinessRuleException;
-import keysson.apis.company.exception.enums.ErrorCode;
-import org.springframework.http.HttpStatusCode;
-import org.springframework.http.ProblemDetail;
+import keysson.apis.empresa.exception.BusinessRuleException;
+import keysson.apis.empresa.exception.enums.ErrorCode;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.ErrorResponse;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 

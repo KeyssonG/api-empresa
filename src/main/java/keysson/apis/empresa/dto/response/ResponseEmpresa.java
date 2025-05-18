@@ -1,4 +1,4 @@
-package keysson.apis.company.dto.response;
+package keysson.apis.empresa.dto.response;
 
 import lombok.Builder;
 import lombok.Getter;
