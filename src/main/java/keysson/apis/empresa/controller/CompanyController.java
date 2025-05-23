@@ -15,7 +15,7 @@ public interface CompanyController {
     @PostMapping("/register")
     @Operation(
             summary = "Cadastrar uma nova empresa",
-            description = "Endpoint para cadastrar uma nova empresa.",
+            description = "Endpoint para cadastrar uma nova empresa, cria usuário administrativo.",
             requestBody = @RequestBody(
                     description = "Dados da nova empresa",
                     required = true,
