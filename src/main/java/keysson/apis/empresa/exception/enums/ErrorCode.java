@@ -7,7 +7,9 @@ public enum ErrorCode {
     CNPJ_JA_CADASTRADO("Empresa com este CNPJ já está cadastrada.", HttpStatus.BAD_REQUEST),
     EMAIL_INVALIDO("O e-mail informado é inválido.", HttpStatus.BAD_REQUEST),
     EMPRESA_NAO_ENCONTRADA("Empresa não encontrada.", HttpStatus.NOT_FOUND),
-    ERRO_INTERNO("Erro interno no servidor.", HttpStatus.INTERNAL_SERVER_ERROR);
+    ERRO_INTERNO("Erro interno no servidor.", HttpStatus.INTERNAL_SERVER_ERROR),
+    ERRO_CADASTRAR("Erro ao cadastrar empresa", HttpStatus.BAD_REQUEST)
+    ;
 
     private final String message;
     private final HttpStatus status;
