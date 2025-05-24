@@ -36,6 +36,7 @@ public class CompanyService {
 
         companyRepository.save(
                 requestRegisterCompany.getName(),
+                requestRegisterCompany.getEmail(),
                 requestRegisterCompany.getCnpj(),
                 numeroConta,
                 encodedPassword,

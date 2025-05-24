@@ -13,6 +13,9 @@ public class RequestRegisterCompany {
     @NotBlank(message = "O nome da empresa é obrigatório")
     private String name;
 
+    @NotBlank(message = "E-mail Corporativo obrigatório.")
+    private String email;
+
     @NotBlank(message = "O CNPJ é obrigatório, somente números")
     @Size(min = 14, max = 18, message = "O CNPJ deve ter entre 14 e 18 caracteres")
     private String cnpj;
