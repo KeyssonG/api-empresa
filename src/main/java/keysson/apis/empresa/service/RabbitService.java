@@ -22,7 +22,7 @@ public class RabbitService {
         mensagenPendente.setId(event.getIdEmpresa());
         mensagenPendente.setName(event.getName());
         mensagenPendente.setEmail(event.getEmail());
-        mensagenPendente.setCnpj(event.getEmail());
+        mensagenPendente.setCnpj(event.getCnpj());
         mensagenPendente.setUsername(event.getUsername());
         mensagenPendente.setStatus(status);
 
