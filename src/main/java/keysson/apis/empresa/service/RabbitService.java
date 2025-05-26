@@ -3,7 +3,6 @@ package keysson.apis.empresa.service;
 import keysson.apis.empresa.dto.EmpresaCadastradaEvent;
 import keysson.apis.empresa.dto.MensagensPendentes;
 import keysson.apis.empresa.repository.RabbitRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.sql.SQLException;
