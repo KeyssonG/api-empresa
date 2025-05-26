@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.sql.SQLException;
 import java.util.Random;
 import java.util.UUID;
 
@@ -21,17 +22,20 @@ public class CompanyService {
 
     private final CompanyRepository companyRepository;
     private final BCryptPasswordEncoder passwordEncoder;
+    private final RabbitService rabbitService;
 
     @Autowired
     private RabbitTemplate rabbitTemplate;
 
-    public CompanyService(CompanyRepository companyRepository, RabbitTemplate rabbitTemplate) {
+
+    public CompanyService(CompanyRepository companyRepository, RabbitService rabbitService, RabbitTemplate rabbitTemplate) {
         this.companyRepository = companyRepository;
+        this.rabbitService = rabbitService;
         this.passwordEncoder = new BCryptPasswordEncoder();
         this.rabbitTemplate = rabbitTemplate;
     }
 
-    public ResponseEmpresa registerCompany(RequestRegisterCompany requestRegisterCompany) throws BusinessRuleException {
+    public ResponseEmpresa registerCompany(RequestRegisterCompany requestRegisterCompany) throws BusinessRuleException, SQLException {
 
         if (companyRepository.existsByCnpj(requestRegisterCompany.getCnpj())) {
             throw new BusinessRuleException(ErrorCode.CNPJ_JA_CADASTRADO);
@@ -61,7 +65,14 @@ public class CompanyService {
                     requestRegisterCompany.getCnpj(),
                     requestRegisterCompany.getUsername()
             );
-            rabbitTemplate.convertAndSend("empresa.fila", event);
+            try {
+                rabbitTemplate.convertAndSend("empresa.fila", event);
+
+                rabbitService.saveMessagesInBank(event, 1);
+            } catch (Exception ex) {
+                rabbitService.saveMessagesInBank(event, 0);
+                throw new RuntimeException("Erro ao enviar mensagem ao RabbitMQ: " + ex.getMessage());
+            }
         } else if (resultado.getResultCode() == 1) {
             throw new BusinessRuleException(ErrorCode.ERRO_CADASTRAR);
         }

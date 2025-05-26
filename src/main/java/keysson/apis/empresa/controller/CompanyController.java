@@ -9,6 +9,8 @@ import keysson.apis.empresa.dto.response.ResponseEmpresa;
 import keysson.apis.empresa.exception.BusinessRuleException;
 import org.springframework.web.bind.annotation.PostMapping;
 
+import java.sql.SQLException;
+
 
 public interface CompanyController {
 
@@ -25,5 +27,5 @@ public interface CompanyController {
             )
     )
    public ResponseEmpresa register(@RequestBody RequestRegisterCompany requestRegisterCompany)
-            throws BusinessRuleException;
+            throws BusinessRuleException, SQLException;
 }
