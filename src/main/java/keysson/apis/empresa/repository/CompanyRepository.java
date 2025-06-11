@@ -66,12 +66,12 @@ public class CompanyRepository {
             cs.setString(3, cnpj);
             cs.setInt(4, numeroConta);
             cs.setInt(5, status);
-            cs.setObject(6, consumerId); // UUID como Types.OTHER
+            cs.setObject(6, consumerId);
             cs.setString(7, username);
             cs.setString(8, password);
 
-            cs.registerOutParameter(9, Types.INTEGER); // out_result
-            cs.registerOutParameter(10, Types.INTEGER); // out_company_id
+            cs.registerOutParameter(9, Types.INTEGER);
+            cs.registerOutParameter(10, Types.INTEGER);
 
             return cs;
         }, Arrays.asList(

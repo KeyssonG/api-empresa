@@ -16,7 +16,7 @@ public class RabbitRepository {
     }
 
     private final String INSERT_MENSSAGE = """
-    INSERT INTO MENSAGENS_PENDENTES (id, name, email, cnpj, username, status)
+    INSERT INTO MENSAGENS_PENDENTES (id, name, email, cnpj_cpf, username, status)
     VALUES (?, ?, ?, ?, ?, ?)
     """;
 
