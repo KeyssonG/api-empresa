@@ -1,6 +1,8 @@
 package keysson.apis.empresa.repository;
 
 import keysson.apis.empresa.dto.response.EmpresaRegistroResultado;
+import keysson.apis.empresa.dto.response.ResponseQuantidadeUsers;
+import keysson.apis.empresa.mapper.QuantidadeUsersMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.SqlOutParameter;
@@ -13,6 +15,7 @@ import java.sql.CallableStatement;
 import java.sql.Connection;
 import java.sql.Types;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.Map;
 import java.util.UUID;
 
@@ -38,6 +41,14 @@ public class CompanyRepository {
         SELECT COUNT(*) 
         FROM companies 
         WHERE numero_conta = ?
+        """;
+
+    private static final String SEARCH_USERS_BY_DATE = """
+            SELECT data_criacao, COUNT(*) AS total_usuarios
+            FROM users
+            WHERE data_criacao BETWEEN ? AND ?
+            GROUP BY data_criacao
+            ORDER BY data_criacao;
         """;
 
     public boolean existsByCnpj(String cnpj) {
@@ -92,5 +103,14 @@ public class CompanyRepository {
         Integer resultCode = (Integer) result.get("out_result");
         Integer companyId = (Integer) result.get("out_company_id");
         return new EmpresaRegistroResultado(resultCode, companyId);
+    }
+
+    public ResponseQuantidadeUsers findUsersByDate(Date startDate, Date endDate) {
+        return jdbcTemplate.query(SEARCH_USERS_BY_DATE, new Object[]{startDate, endDate}, rs -> {
+            if (rs.next()) {
+                return QuantidadeUsersMapper.toResponse(rs);
+            }
+            return null;
+        });
     }
 }

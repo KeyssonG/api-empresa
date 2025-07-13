@@ -5,6 +5,7 @@ import keysson.apis.empresa.dto.EmpresaCadastradaEvent;
 import keysson.apis.empresa.dto.request.RequestRegisterCompany;
 import keysson.apis.empresa.dto.response.EmpresaRegistroResultado;
 import keysson.apis.empresa.dto.response.ResponseEmpresa;
+import keysson.apis.empresa.dto.response.ResponseQuantidadeUsers;
 import keysson.apis.empresa.exception.BusinessRuleException;
 import keysson.apis.empresa.exception.enums.ErrorCode;
 import keysson.apis.empresa.repository.CompanyRepository;
@@ -14,6 +15,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.sql.SQLException;
+import java.util.Date;
 import java.util.Random;
 import java.util.UUID;
 
@@ -47,7 +49,7 @@ public class CompanyService {
 
         String consumerId = UUID.randomUUID().toString();
 
-        EmpresaRegistroResultado resultado =companyRepository.save(
+        EmpresaRegistroResultado resultado = companyRepository.save(
                 requestRegisterCompany.getName(),
                 requestRegisterCompany.getEmail(),
                 requestRegisterCompany.getCnpj(),
@@ -93,4 +95,15 @@ public class CompanyService {
 
         return numero;
     }
+
+    public ResponseQuantidadeUsers searchUsersByDate(Date startDate, Date endDate) throws BusinessRuleException, SQLException {
+
+        ResponseQuantidadeUsers response = companyRepository.findUsersByDate(startDate, endDate);
+        if (response == null) {
+            throw new BusinessRuleException(ErrorCode.USUARIOS_NAO_ENCONTRADOS);
+        }
+
+        return response;
+    }
+
 }

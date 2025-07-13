@@ -6,8 +6,14 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import keysson.apis.empresa.dto.request.RequestRegisterCompany;
 import keysson.apis.empresa.dto.response.ResponseEmpresa;
+import keysson.apis.empresa.dto.response.ResponseQuantidadeUsers;
 import keysson.apis.empresa.exception.BusinessRuleException;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import java.sql.SQLException;
 
@@ -28,4 +34,15 @@ public interface CompanyController {
     )
    public ResponseEmpresa register(@RequestBody RequestRegisterCompany requestRegisterCompany)
             throws BusinessRuleException, SQLException;
+
+    @GetMapping("/users")
+    @Operation(
+            summary = "Obtém a quantidade de usuários cadastrados",
+            description = "Endpoint para obter a quantidade de usuários cadastrados por data."
+    )
+    ResponseQuantidadeUsers searchusers(
+            @RequestHeader("Authorization") String token,
+            @RequestParam(required = false) String startDate,
+            @RequestParam(required = false) String endDate
+    ) throws BusinessRuleException, SQLException;
 }
