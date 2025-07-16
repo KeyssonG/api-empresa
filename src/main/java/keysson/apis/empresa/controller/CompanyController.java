@@ -40,9 +40,9 @@ public interface CompanyController {
             summary = "Obtém a quantidade de usuários cadastrados",
             description = "Endpoint para obter a quantidade de usuários cadastrados por data."
     )
-    ResponseQuantidadeUsers searchusers(
+    ResponseQuantidadeUsers searchUsers(
             @RequestHeader("Authorization") String token,
-            @RequestParam(required = false) String startDate,
-            @RequestParam(required = false) String endDate
+            @RequestParam(required = false) String dataInicio,
+            @RequestParam(required = false) String dataFim
     ) throws BusinessRuleException, SQLException;
 }

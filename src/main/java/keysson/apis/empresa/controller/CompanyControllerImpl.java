@@ -27,25 +27,23 @@ public class CompanyControllerImpl implements CompanyController{
     }
 
     @Override
-    @PostMapping("/register")
     public ResponseEmpresa register(@RequestBody RequestRegisterCompany requestRegisterCompany) throws SQLException {
            return companyService.registerCompany(requestRegisterCompany);
     }
 
     @Override
-    @GetMapping("/users")
-    public ResponseQuantidadeUsers searchusers(String token,
-            @RequestParam(required = false) String startDate,
-            @RequestParam(required = false) String endDate
+    public ResponseQuantidadeUsers searchUsers(String token,
+            @RequestParam(required = false) String dataInicio,
+            @RequestParam(required = false) String dataFim
     ) throws BusinessRuleException, SQLException {
-        if (startDate == null || startDate.isEmpty()) {
-            startDate = java.time.LocalDate.now().format(java.time.format.DateTimeFormatter.ofPattern("ddMMyyyy"));
+        if (dataInicio == null || dataInicio.isEmpty()) {
+            dataInicio = java.time.LocalDate.now().format(java.time.format.DateTimeFormatter.ofPattern("ddMMyyyy"));
         }
-        if (endDate == null || endDate.isEmpty()) {
-            endDate = java.time.LocalDate.now().format(java.time.format.DateTimeFormatter.ofPattern("ddMMyyyy"));
+        if (dataFim == null || dataFim.isEmpty()) {
+            dataFim = java.time.LocalDate.now().format(java.time.format.DateTimeFormatter.ofPattern("ddMMyyyy"));
         }
-        java.util.Date inicioFormatado = FormatDate.formatDate(startDate);
-        java.util.Date fimFormatado = FormatDate.formatDate(endDate);
+        java.util.Date inicioFormatado = FormatDate.formatDate(dataInicio);
+        java.util.Date fimFormatado = FormatDate.formatDate(dataFim);
         return companyService.searchUsersByDate(inicioFormatado, fimFormatado);
     }
 
