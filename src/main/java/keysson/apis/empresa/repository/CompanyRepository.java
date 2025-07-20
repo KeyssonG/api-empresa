@@ -65,44 +65,48 @@ public class CompanyRepository {
                                          int numeroConta, String password,
                                          String username, int status) {
 
-        UUID consumerId = UUID.randomUUID();
+        try {
+            UUID consumerId = UUID.randomUUID();
 
-        String sql = "CALL proc_registrar_empresa_usuario(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+            String sql = "CALL proc_registrar_empresa_usuario(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
-        Map<String, Object> result = jdbcTemplate.call(connection -> {
-            CallableStatement cs = connection.prepareCall(sql);
+            Map<String, Object> result = jdbcTemplate.call(connection -> {
+                CallableStatement cs = connection.prepareCall(sql);
 
-            cs.setString(1, name);
-            cs.setString(2, email);
-            cs.setString(3, cnpj);
-            cs.setInt(4, numeroConta);
-            cs.setInt(5, status);
-            cs.setObject(6, consumerId);
-            cs.setString(7, username);
-            cs.setString(8, password);
+                cs.setString(1, name);
+                cs.setString(2, email);
+                cs.setString(3, cnpj);
+                cs.setInt(4, numeroConta);
+                cs.setInt(5, status);
+                cs.setObject(6, consumerId);
+                cs.setString(7, username);
+                cs.setString(8, password);
 
-            cs.registerOutParameter(9, Types.INTEGER);
-            cs.registerOutParameter(10, Types.INTEGER);
+                cs.registerOutParameter(9, Types.INTEGER);
+                cs.registerOutParameter(10, Types.INTEGER);
 
-            return cs;
-        }, Arrays.asList(
-                new SqlParameter("p_name", Types.VARCHAR),
-                new SqlParameter("p_email", Types.VARCHAR),
-                new SqlParameter("p_cnpj", Types.VARCHAR),
-                new SqlParameter("p_numero_conta", Types.INTEGER),
-                new SqlParameter("p_status", Types.INTEGER),
-                new SqlParameter("p_consumer_id", Types.OTHER),
-                new SqlParameter("p_username", Types.VARCHAR),
-                new SqlParameter("p_password", Types.VARCHAR),
-                new SqlOutParameter("out_result", Types.INTEGER),
-                new SqlOutParameter("out_company_id", Types.INTEGER)
-        ));
+                return cs;
+            }, Arrays.asList(
+                    new SqlParameter("p_name", Types.VARCHAR),
+                    new SqlParameter("p_email", Types.VARCHAR),
+                    new SqlParameter("p_cnpj", Types.VARCHAR),
+                    new SqlParameter("p_numero_conta", Types.INTEGER),
+                    new SqlParameter("p_status", Types.INTEGER),
+                    new SqlParameter("p_consumer_id", Types.OTHER),
+                    new SqlParameter("p_username", Types.VARCHAR),
+                    new SqlParameter("p_password", Types.VARCHAR),
+                    new SqlOutParameter("out_result", Types.INTEGER),
+                    new SqlOutParameter("out_company_id", Types.INTEGER)
+            ));
 
-        System.out.println("Map result: " + result);
+            System.out.println("Map result: " + result);
 
-        Integer resultCode = (Integer) result.get("out_result");
-        Integer companyId = (Integer) result.get("out_company_id");
-        return new EmpresaRegistroResultado(resultCode, companyId);
+            Integer resultCode = (Integer) result.get("out_result");
+            Integer companyId = (Integer) result.get("out_company_id");
+            return new EmpresaRegistroResultado(resultCode, companyId);
+        } catch (Exception e) {
+            throw new RuntimeException("Erro ao registrar empresa: " + e.getMessage(), e);
+        }
     }
 
     public ResponseQuantidadeUsers findUsersByDate(Date startDate, Date endDate) {

@@ -49,15 +49,22 @@ public class CompanyService {
 
         String consumerId = UUID.randomUUID().toString();
 
-        EmpresaRegistroResultado resultado = companyRepository.save(
-                requestRegisterCompany.getName(),
-                requestRegisterCompany.getEmail(),
-                requestRegisterCompany.getCnpj(),
-                numeroConta,
-                encodedPassword,
-                requestRegisterCompany.getUsername(),
-                1
-        );
+        EmpresaRegistroResultado resultado;
+
+
+        try {
+            resultado = companyRepository.save(
+                    requestRegisterCompany.getName(),
+                    requestRegisterCompany.getEmail(),
+                    requestRegisterCompany.getCnpj(),
+                    numeroConta,
+                    encodedPassword,
+                    requestRegisterCompany.getUsername(),
+                    1
+            );
+        } catch (Exception e) {
+            throw new BusinessRuleException(ErrorCode.ERRO_CADASTRAR);
+        }
 
         if (resultado.getResultCode() == 0) {
             EmpresaCadastradaEvent event = new EmpresaCadastradaEvent(
