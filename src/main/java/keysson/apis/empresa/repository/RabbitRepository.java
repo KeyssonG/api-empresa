@@ -1,6 +1,6 @@
 package keysson.apis.empresa.repository;
 
-import keysson.apis.empresa.dto.MensagensPendentes;
+import keysson.apis.empresa.dto.PendingMessages;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
@@ -20,15 +20,15 @@ public class RabbitRepository {
     VALUES (?, ?, ?, ?, ?, ?)
     """;
 
-    public void saveMenssage(MensagensPendentes mensagem) throws SQLException {
+    public void saveMenssage(PendingMessages message) throws SQLException {
         try {
             jdbcTemplate.update(INSERT_MENSSAGE,
-                    mensagem.getId(),
-                    mensagem.getName(),
-                    mensagem.getEmail(),
-                    mensagem.getCnpj(),
-                    mensagem.getUsername(),
-                    mensagem.getStatus());
+                    message.getId(),
+                    message.getName(),
+                    message.getEmail(),
+                    message.getCnpj(),
+                    message.getUsername(),
+                    message.getStatus());
         } catch (Exception ex) {
             throw new SQLException("Erro ao salvar a mensagem pendente no banco", ex);
         }

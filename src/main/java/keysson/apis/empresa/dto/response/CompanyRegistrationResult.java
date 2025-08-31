@@ -5,7 +5,7 @@ import lombok.Data;
 
 @Data
 @AllArgsConstructor
-public class EmpresaRegistroResultado {
+public class CompanyRegistrationResult {
     private int resultCode;
     private int idEmpresa;
 }

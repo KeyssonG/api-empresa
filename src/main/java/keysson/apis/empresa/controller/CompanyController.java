@@ -5,11 +5,9 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import keysson.apis.empresa.dto.request.RequestRegisterCompany;
-import keysson.apis.empresa.dto.response.ResponseEmpresa;
-import keysson.apis.empresa.dto.response.ResponseQuantidadeUsers;
+import keysson.apis.empresa.dto.response.CompanyResponse;
+import keysson.apis.empresa.dto.response.UserCountResponse;
 import keysson.apis.empresa.exception.BusinessRuleException;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -32,7 +30,7 @@ public interface CompanyController {
                     )
             )
     )
-   public ResponseEmpresa register(@RequestBody RequestRegisterCompany requestRegisterCompany)
+   public CompanyResponse register(@RequestBody RequestRegisterCompany requestRegisterCompany)
             throws BusinessRuleException, SQLException;
 
     @GetMapping("/users")
@@ -40,7 +38,7 @@ public interface CompanyController {
             summary = "Obtém a quantidade de usuários cadastrados",
             description = "Endpoint para obter a quantidade de usuários cadastrados por data."
     )
-    ResponseQuantidadeUsers searchUsers(
+    UserCountResponse searchUsers(
             @RequestHeader("Authorization") String token,
             @RequestParam(required = false) String dataInicio,
             @RequestParam(required = false) String dataFim

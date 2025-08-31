@@ -1,7 +1,8 @@
 package keysson.apis.empresa.service;
 
-import keysson.apis.empresa.dto.EmpresaCadastradaEvent;
-import keysson.apis.empresa.dto.MensagensPendentes;
+
+import keysson.apis.empresa.dto.PendingMessages;
+import keysson.apis.empresa.dto.RegisteredCompanyEvent;
 import keysson.apis.empresa.repository.RabbitRepository;
 import org.springframework.stereotype.Service;
 
@@ -17,15 +18,15 @@ public class RabbitService {
         this.rabbitRepository = rabbitRepository;
     }
 
-    public void saveMessagesInBank(EmpresaCadastradaEvent event, int status) throws SQLException {
-        MensagensPendentes mensagenPendente = new MensagensPendentes();
-        mensagenPendente.setId(event.getIdEmpresa());
-        mensagenPendente.setName(event.getName());
-        mensagenPendente.setEmail(event.getEmail());
-        mensagenPendente.setCnpj(event.getCnpj());
-        mensagenPendente.setUsername(event.getUsername());
-        mensagenPendente.setStatus(status);
+    public void saveMessagesInBank(RegisteredCompanyEvent event, int status) throws SQLException {
+        PendingMessages pendingMessages = new PendingMessages();
+        pendingMessages.setId(event.getIdEmpresa());
+        pendingMessages.setName(event.getName());
+        pendingMessages.setEmail(event.getEmail());
+        pendingMessages.setCnpj(event.getCnpj());
+        pendingMessages.setUsername(event.getUsername());
+        pendingMessages.setStatus(status);
 
-        rabbitRepository.saveMenssage(mensagenPendente);
+        rabbitRepository.saveMenssage(pendingMessages);
     }
 }

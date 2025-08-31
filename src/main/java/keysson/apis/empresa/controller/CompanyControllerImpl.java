@@ -2,22 +2,23 @@ package keysson.apis.empresa.controller;
 
 import keysson.apis.empresa.config.FormatDate;
 import keysson.apis.empresa.dto.request.RequestRegisterCompany;
-import keysson.apis.empresa.dto.response.ResponseEmpresa;
-import keysson.apis.empresa.dto.response.ResponseQuantidadeUsers;
+import keysson.apis.empresa.dto.response.CompanyResponse;
+import keysson.apis.empresa.dto.response.UserCountResponse;
 import keysson.apis.empresa.exception.BusinessRuleException;
 import keysson.apis.empresa.service.CompanyService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.sql.SQLException;
-import java.util.Date;
 
 @RestController
 public class CompanyControllerImpl implements CompanyController{
+
+    private static final Logger logger = LoggerFactory.getLogger(CompanyControllerImpl.class);
 
     private final CompanyService companyService;
 
@@ -27,15 +28,19 @@ public class CompanyControllerImpl implements CompanyController{
     }
 
     @Override
-    public ResponseEmpresa register(@RequestBody RequestRegisterCompany requestRegisterCompany) throws SQLException {
-           return companyService.registerCompany(requestRegisterCompany);
+    public CompanyResponse register(@RequestBody RequestRegisterCompany requestRegisterCompany) throws SQLException {
+        logger.info("Registrando empresa com os dados: {}", requestRegisterCompany);
+        CompanyResponse response = companyService.registerCompany(requestRegisterCompany);
+        logger.info("Empresa registrada com sucesso: {}", response);
+        return response;
     }
 
     @Override
-    public ResponseQuantidadeUsers searchUsers(String token,
-            @RequestParam(required = false) String dataInicio,
-            @RequestParam(required = false) String dataFim
+    public UserCountResponse searchUsers(String token,
+                                         @RequestParam(required = false) String dataInicio,
+                                         @RequestParam(required = false) String dataFim
     ) throws BusinessRuleException, SQLException {
+        logger.info("Buscando usuários com token: {}, dataInicio: {}, dataFim: {}", token, dataInicio, dataFim);
         if (dataInicio == null || dataInicio.isEmpty()) {
             dataInicio = java.time.LocalDate.now().format(java.time.format.DateTimeFormatter.ofPattern("ddMMyyyy"));
         }
@@ -44,7 +49,9 @@ public class CompanyControllerImpl implements CompanyController{
         }
         java.util.Date inicioFormatado = FormatDate.formatDate(dataInicio);
         java.util.Date fimFormatado = FormatDate.formatDate(dataFim);
-        return companyService.searchUsersByDate(inicioFormatado, fimFormatado);
+        UserCountResponse response = companyService.searchUsersByDate(inicioFormatado, fimFormatado);
+        logger.info("Busca de usuários concluída com sucesso: {}", response);
+        return response;
     }
 
 }

@@ -1,11 +1,11 @@
 package keysson.apis.empresa.service;
 
-import jakarta.annotation.PostConstruct;
-import keysson.apis.empresa.dto.EmpresaCadastradaEvent;
+
+import keysson.apis.empresa.dto.RegisteredCompanyEvent;
 import keysson.apis.empresa.dto.request.RequestRegisterCompany;
-import keysson.apis.empresa.dto.response.EmpresaRegistroResultado;
-import keysson.apis.empresa.dto.response.ResponseEmpresa;
-import keysson.apis.empresa.dto.response.ResponseQuantidadeUsers;
+import keysson.apis.empresa.dto.response.CompanyRegistrationResult;
+import keysson.apis.empresa.dto.response.CompanyResponse;
+import keysson.apis.empresa.dto.response.UserCountResponse;
 import keysson.apis.empresa.exception.BusinessRuleException;
 import keysson.apis.empresa.exception.enums.ErrorCode;
 import keysson.apis.empresa.repository.CompanyRepository;
@@ -14,6 +14,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.sql.SQLException;
 import java.util.Date;
 import java.util.Random;
@@ -21,6 +24,8 @@ import java.util.UUID;
 
 @Service
 public class CompanyService {
+
+    private static final Logger logger = LoggerFactory.getLogger(CompanyService.class);
 
     private final CompanyRepository companyRepository;
     private final BCryptPasswordEncoder passwordEncoder;
@@ -37,23 +42,28 @@ public class CompanyService {
         this.rabbitTemplate = rabbitTemplate;
     }
 
-    public ResponseEmpresa registerCompany(RequestRegisterCompany requestRegisterCompany) throws BusinessRuleException, SQLException {
+    public CompanyResponse registerCompany(RequestRegisterCompany requestRegisterCompany) throws BusinessRuleException, SQLException {
+        logger.info("Iniciando registro de empresa com CNPJ: {}", requestRegisterCompany.getCnpj());
 
         if (companyRepository.existsByCnpj(requestRegisterCompany.getCnpj())) {
+            logger.warn("CNPJ já cadastrado: {}", requestRegisterCompany.getCnpj());
             throw new BusinessRuleException(ErrorCode.CNPJ_JA_CADASTRADO);
         }
 
         int numeroConta = gerarNumeroContaUnico();
+        logger.debug("Número de conta gerado: {}", numeroConta);
 
         String encodedPassword = passwordEncoder.encode(requestRegisterCompany.getPassword());
+        logger.debug("Senha codificada para o registro.");
 
         String consumerId = UUID.randomUUID().toString();
+        logger.debug("Consumer ID gerado: {}", consumerId);
 
-        EmpresaRegistroResultado resultado;
+        CompanyRegistrationResult result;
 
 
         try {
-            resultado = companyRepository.save(
+            result = companyRepository.save(
                     requestRegisterCompany.getName(),
                     requestRegisterCompany.getEmail(),
                     requestRegisterCompany.getCnpj(),
@@ -63,12 +73,13 @@ public class CompanyService {
                     1
             );
         } catch (Exception e) {
+            logger.error("Erro ao cadastrar empresa: {}", e.getMessage());
             throw new BusinessRuleException(ErrorCode.ERRO_CADASTRAR);
         }
 
-        if (resultado.getResultCode() == 0) {
-            EmpresaCadastradaEvent event = new EmpresaCadastradaEvent(
-                    resultado.getIdEmpresa(),
+        if (result.getResultCode() == 0) {
+            RegisteredCompanyEvent event = new RegisteredCompanyEvent(
+                    result.getIdEmpresa(),
                     requestRegisterCompany.getName(),
                     requestRegisterCompany.getEmail(),
                     requestRegisterCompany.getCnpj(),
@@ -76,17 +87,22 @@ public class CompanyService {
             );
             try {
                 rabbitTemplate.convertAndSend("empresa.fila", event);
+                logger.info("Mensagem enviada para a fila RabbitMQ com sucesso.");
 
                 rabbitService.saveMessagesInBank(event, 1);
             } catch (Exception ex) {
+                logger.error("Erro ao enviar mensagem ao RabbitMQ: {}", ex.getMessage());
                 rabbitService.saveMessagesInBank(event, 0);
                 throw new RuntimeException("Erro ao enviar mensagem ao RabbitMQ: " + ex.getMessage());
             }
-        } else if (resultado.getResultCode() == 1) {
+        } else if (result.getResultCode() == 1) {
+            logger.error("Erro ao cadastrar empresa, código de resultado: {}", result.getResultCode());
             throw new BusinessRuleException(ErrorCode.ERRO_CADASTRAR);
         }
 
-        return ResponseEmpresa.builder()
+        logger.info("Registro de empresa concluído com sucesso para o CNPJ: {}", requestRegisterCompany.getCnpj());
+
+        return CompanyResponse.builder()
                 .nome(requestRegisterCompany.getName())
                 .conta(numeroConta)
                 .build();
@@ -103,9 +119,9 @@ public class CompanyService {
         return numero;
     }
 
-    public ResponseQuantidadeUsers searchUsersByDate(Date startDate, Date endDate) throws BusinessRuleException, SQLException {
+    public UserCountResponse searchUsersByDate(Date startDate, Date endDate) throws BusinessRuleException, SQLException {
 
-        ResponseQuantidadeUsers response = companyRepository.findUsersByDate(startDate, endDate);
+        UserCountResponse response = companyRepository.findUsersByDate(startDate, endDate);
         if (response == null) {
             throw new BusinessRuleException(ErrorCode.USUARIOS_NAO_ENCONTRADOS);
         }

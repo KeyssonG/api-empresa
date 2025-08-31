@@ -1,18 +1,16 @@
 package keysson.apis.empresa.repository;
 
-import keysson.apis.empresa.dto.response.EmpresaRegistroResultado;
-import keysson.apis.empresa.dto.response.ResponseQuantidadeUsers;
-import keysson.apis.empresa.mapper.QuantidadeUsersMapper;
-import org.springframework.beans.factory.annotation.Autowired;
+import keysson.apis.empresa.dto.response.CompanyRegistrationResult;
+import keysson.apis.empresa.dto.response.UserCountResponse;
+import keysson.apis.empresa.mapper.UserCountMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.SqlOutParameter;
 import org.springframework.jdbc.core.SqlParameter;
 import org.springframework.stereotype.Repository;
 
-
-import javax.sql.DataSource;
 import java.sql.CallableStatement;
-import java.sql.Connection;
 import java.sql.Types;
 import java.util.Arrays;
 import java.util.Date;
@@ -22,14 +20,13 @@ import java.util.UUID;
 @Repository
 public class CompanyRepository {
 
+    private static final Logger logger = LoggerFactory.getLogger(CompanyRepository.class);
+
     private final JdbcTemplate jdbcTemplate;
 
     public CompanyRepository(JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
     }
-
-    @Autowired
-    private DataSource dataSource;
 
     private static final String CHECK_EXISTS_CNPJ = """
         SELECT COUNT(*) 
@@ -52,16 +49,22 @@ public class CompanyRepository {
         """;
 
     public boolean existsByCnpj(String cnpj) {
-        Long count = jdbcTemplate.queryForObject(CHECK_EXISTS_CNPJ, Long.class, cnpj);
-        return count != null && count > 0;
+        logger.info("Verificando existência de empresa com CNPJ: {}", cnpj);
+        Integer count = jdbcTemplate.queryForObject(CHECK_EXISTS_CNPJ, Integer.class, cnpj);
+        boolean exists = count != null && count > 0;
+        logger.debug("Resultado da verificação de CNPJ: {}", exists);
+        return exists;
     }
 
     public boolean existsByNumeroConta(int numeroConta) {
-        Long count = jdbcTemplate.queryForObject(CHECK_EXISTS_NUMERO_CONTA, Long.class, numeroConta);
-        return count != null && count > 0;
+        logger.info("Verificando existência de número de conta: {}", numeroConta);
+        Integer count = jdbcTemplate.queryForObject(CHECK_EXISTS_NUMERO_CONTA, Integer.class, numeroConta);
+        boolean exists = count != null && count > 0;
+        logger.debug("Resultado da verificação de número de conta: {}", exists);
+        return exists;
     }
 
-    public EmpresaRegistroResultado save(String name, String email, String cnpj,
+    public CompanyRegistrationResult save(String name, String email, String cnpj,
                                          int numeroConta, String password,
                                          String username, int status) {
 
@@ -99,22 +102,31 @@ public class CompanyRepository {
                     new SqlOutParameter("out_company_id", Types.INTEGER)
             ));
 
-            System.out.println("Map result: " + result);
+            logger.debug("Map result: {}", result);
 
             Integer resultCode = (Integer) result.get("out_result");
             Integer companyId = (Integer) result.get("out_company_id");
-            return new EmpresaRegistroResultado(resultCode, companyId);
+            return new CompanyRegistrationResult(resultCode, companyId);
         } catch (Exception e) {
             throw new RuntimeException("Erro ao registrar empresa: " + e.getMessage(), e);
         }
     }
 
-    public ResponseQuantidadeUsers findUsersByDate(Date startDate, Date endDate) {
-        return jdbcTemplate.query(SEARCH_USERS_BY_DATE, new Object[]{startDate, endDate}, rs -> {
-            if (rs.next()) {
-                return QuantidadeUsersMapper.toResponse(rs);
-            }
-            return null;
-        });
+    public UserCountResponse findUsersByDate(Date startDate, Date endDate) {
+        logger.info("Buscando usuários entre as datas: {} e {}", startDate, endDate);
+        try {
+            return jdbcTemplate.query(SEARCH_USERS_BY_DATE, ps -> {
+                ps.setDate(1, new java.sql.Date(startDate.getTime()));
+                ps.setDate(2, new java.sql.Date(endDate.getTime()));
+            }, rs -> {
+                if (rs.next()) {
+                    return UserCountMapper.toResponse(rs);
+                }
+                return null;
+            });
+        } catch (Exception e) {
+            logger.error("Erro ao buscar usuários entre as datas: {} e {}. Detalhes: {}", startDate, endDate, e.getMessage());
+            throw new RuntimeException("Erro ao buscar usuários por data", e);
+        }
     }
 }
