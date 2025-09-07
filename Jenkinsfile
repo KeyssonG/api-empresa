@@ -3,7 +3,7 @@ pipeline {
 
     environment {
         DOCKERHUB_IMAGE = "keyssong/empresa"
-        DEPLOYMENT_FILE = "k8s\\empresa-deployment.yaml"
+        DEPLOYMENT_FILE = "k8s/empresa-deployment.yaml"
         IMAGE_TAG = "latest"
     }
 
@@ -35,19 +35,19 @@ pipeline {
 
         stage('Build da Imagem Docker') {
             steps {
-                bat "docker build -t %DOCKERHUB_IMAGE%:%IMAGE_TAG% ."
-                bat "docker tag %DOCKERHUB_IMAGE%:%IMAGE_TAG% %DOCKERHUB_IMAGE%:latest"
+                sh "docker build -t $DOCKERHUB_IMAGE:$IMAGE_TAG ."
+                sh "docker tag $DOCKERHUB_IMAGE:$IMAGE_TAG $DOCKERHUB_IMAGE:latest"
             }
         }
 
         stage('Push da Imagem para Docker Hub') {
             steps {
                 withCredentials([usernamePassword(credentialsId: 'dockerhub', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
-                    bat """
-                        echo %DOCKER_PASS% | docker login -u %DOCKER_USER% --password-stdin
-                        docker push %DOCKERHUB_IMAGE%:%IMAGE_TAG%
-                        docker push %DOCKERHUB_IMAGE%:latest
-                    """
+                     sh """
+                         echo \$DOCKER_PASS | docker login -u \$DOCKER_USER --password-stdin
+                         docker push ${DOCKERHUB_IMAGE}:${IMAGE_TAG}
+                         docker push ${DOCKERHUB_IMAGE}:latest
+                     """
                 }
             }
         }
@@ -57,18 +57,14 @@ pipeline {
                 script {
                     def commitSuccess = false
 
-                    bat """
-                        powershell -Command "\$content = Get-Content '${DEPLOYMENT_FILE}'; \$newContent = \$content -replace 'image: .*', 'image: ${DOCKERHUB_IMAGE}:${IMAGE_TAG}'; if (-not (\$content -eq \$newContent)) { \$newContent | Set-Content '${DEPLOYMENT_FILE}' }"
-                    """
+                    sh "sed -i 's|image: .*|image: $DOCKERHUB_IMAGE:$IMAGE_TAG|' $DEPLOYMENT_FILE"
 
-                    bat """
-                        git config user.email "jenkins@pipeline.com"
-                        git config user.name "Jenkins"
-                        git add "${DEPLOYMENT_FILE}"
-                        git diff --cached --quiet || git commit -m "Atualiza imagem Docker para latest"
-                    """
+                    sh "git config user.email 'jenkins@pipeline.com'"
+                    sh "git config user.name 'Jenkins'"
+                    sh "git add $DEPLOYMENT_FILE"
+                    sh "git diff --cached --quiet || git commit -m 'Atualiza imagem Docker para latest'"
 
-                    commitSuccess = bat(script: 'git diff --cached --quiet || echo "changed"', returnStdout: true).trim() == "changed"
+                    commitSuccess = sh(script: 'git diff --cached --quiet || echo "changed"', returnStdout: true).trim() == "changed"
 
                     if (commitSuccess) {
                         echo "Alterações no arquivo de deployment detectadas. Commit realizado."
