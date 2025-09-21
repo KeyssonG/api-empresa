@@ -2,7 +2,9 @@ package keysson.apis.empresa.repository;
 
 import keysson.apis.empresa.dto.response.CompanyRegistrationResult;
 import keysson.apis.empresa.dto.response.UserCountResponse;
+import keysson.apis.empresa.dto.response.EmployeeResponse;
 import keysson.apis.empresa.mapper.UserCountMapper;
+import keysson.apis.empresa.mapper.EmployeeRowMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -14,6 +16,7 @@ import java.sql.CallableStatement;
 import java.sql.Types;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -47,6 +50,11 @@ public class CompanyRepository {
             GROUP BY data_criacao
             ORDER BY data_criacao;
         """;
+
+    private static final String SEARCH_EMPLOYEES_BY_DEPARTMENT_AND_DATE =
+        "SELECT id, nome, departamento, data_criacao, company_id " +
+        "FROM vw_funcionarios " +
+        "WHERE data_criacao BETWEEN ? AND ? AND company_id = ?";
 
     public boolean existsByCnpj(String cnpj) {
         logger.info("Verificando existência de empresa com CNPJ: {}", cnpj);
@@ -127,6 +135,28 @@ public class CompanyRepository {
         } catch (Exception e) {
             logger.error("Erro ao buscar usuários entre as datas: {} e {}. Detalhes: {}", startDate, endDate, e.getMessage());
             throw new RuntimeException("Erro ao buscar usuários por data", e);
+        }
+    }
+
+    public List<EmployeeResponse> findEmployeesByDepartmentAndDate(String departamento, Date startDate, Date endDate, Integer idEmpresa) {
+        logger.info("Buscando funcionários entre as datas: {} e {}, departamento: {} e company_id: {}", startDate, endDate, departamento, idEmpresa);
+        String sql = SEARCH_EMPLOYEES_BY_DEPARTMENT_AND_DATE;
+        Object[] params;
+        int[] types;
+        if (departamento != null && !departamento.isEmpty()) {
+            sql += " AND departamento = ?";
+            params = new Object[]{new java.sql.Date(startDate.getTime()), new java.sql.Date(endDate.getTime()), idEmpresa, departamento};
+            types = new int[]{Types.DATE, Types.DATE, Types.INTEGER, Types.VARCHAR};
+        } else {
+            params = new Object[]{new java.sql.Date(startDate.getTime()), new java.sql.Date(endDate.getTime()), idEmpresa};
+            types = new int[]{Types.DATE, Types.DATE, Types.INTEGER};
+        }
+        sql += " ORDER BY data_criacao;";
+        try {
+            return jdbcTemplate.query(sql, params, types, new EmployeeRowMapper());
+        } catch (Exception e) {
+            logger.error("Erro ao buscar funcionários: {}", e.getMessage());
+            throw new RuntimeException("Erro ao buscar funcionários por departamento, data e empresa", e);
         }
     }
 }

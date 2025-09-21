@@ -1,10 +1,14 @@
 package keysson.apis.empresa.service;
 
 
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
+import jakarta.servlet.http.HttpServletRequest;
+import keysson.apis.empresa.Utils.JwtUtil;
 import keysson.apis.empresa.dto.RegisteredCompanyEvent;
 import keysson.apis.empresa.dto.request.RequestRegisterCompany;
 import keysson.apis.empresa.dto.response.CompanyRegistrationResult;
 import keysson.apis.empresa.dto.response.CompanyResponse;
+import keysson.apis.empresa.dto.response.EmployeeResponse;
 import keysson.apis.empresa.dto.response.UserCountResponse;
 import keysson.apis.empresa.exception.BusinessRuleException;
 import keysson.apis.empresa.exception.enums.ErrorCode;
@@ -19,6 +23,7 @@ import org.slf4j.LoggerFactory;
 
 import java.sql.SQLException;
 import java.util.Date;
+import java.util.List;
 import java.util.Random;
 import java.util.UUID;
 
@@ -26,6 +31,7 @@ import java.util.UUID;
 public class CompanyService {
 
     private static final Logger logger = LoggerFactory.getLogger(CompanyService.class);
+    private static final String RABBITMQ_CB = "rabbitmqCB";
 
     private final CompanyRepository companyRepository;
     private final BCryptPasswordEncoder passwordEncoder;
@@ -34,12 +40,30 @@ public class CompanyService {
     @Autowired
     private RabbitTemplate rabbitTemplate;
 
+    @Autowired
+    private HttpServletRequest httpRequest;
+
+    @Autowired
+    private JwtUtil jwtUtil;
+
 
     public CompanyService(CompanyRepository companyRepository, RabbitService rabbitService, RabbitTemplate rabbitTemplate) {
         this.companyRepository = companyRepository;
         this.rabbitService = rabbitService;
         this.passwordEncoder = new BCryptPasswordEncoder();
         this.rabbitTemplate = rabbitTemplate;
+    }
+
+    @CircuitBreaker(name = RABBITMQ_CB, fallbackMethod = "fallbackSendToRabbitMQ")
+    private void sendToRabbitMQ(String queue, Object message, RegisteredCompanyEvent event) throws SQLException {
+        rabbitTemplate.convertAndSend(queue, message);
+        rabbitService.saveMessagesInBank(event, 1);
+        logger.info("Mensagem enviada para a fila RabbitMQ com sucesso.");
+    }
+
+    private void fallbackSendToRabbitMQ(String queue, Object message, RegisteredCompanyEvent event, Throwable t) throws SQLException {
+        logger.error("Circuit breaker ativado ao enviar mensagem ao RabbitMQ: {}", t.getMessage());
+        rabbitService.saveMessagesInBank(event, 0);
     }
 
     public CompanyResponse registerCompany(RequestRegisterCompany requestRegisterCompany) throws BusinessRuleException, SQLException {
@@ -86,13 +110,10 @@ public class CompanyService {
                     requestRegisterCompany.getUsername()
             );
             try {
-                rabbitTemplate.convertAndSend("empresa.fila", event);
-                logger.info("Mensagem enviada para a fila RabbitMQ com sucesso.");
-
-                rabbitService.saveMessagesInBank(event, 1);
+                sendToRabbitMQ("empresa.fila", event, event);
             } catch (Exception ex) {
                 logger.error("Erro ao enviar mensagem ao RabbitMQ: {}", ex.getMessage());
-                rabbitService.saveMessagesInBank(event, 0);
+                // fallback já salva como pendente
                 throw new RuntimeException("Erro ao enviar mensagem ao RabbitMQ: " + ex.getMessage());
             }
         } else if (result.getResultCode() == 1) {
@@ -126,6 +147,22 @@ public class CompanyService {
             throw new BusinessRuleException(ErrorCode.USUARIOS_NAO_ENCONTRADOS);
         }
 
+        return response;
+    }
+
+    public List<EmployeeResponse> searchEmployeesByDepartmentAndDate(String departamento, Date startDate, Date endDate) throws BusinessRuleException, SQLException {
+
+        String token = (String) httpRequest.getAttribute("CleanJwt");
+
+        Integer idEmpresa = jwtUtil.extractCompanyId(token);
+        if (idEmpresa == null) {
+            throw new IllegalArgumentException("ID da empresa não encontrado no token.");
+        }
+
+        List<EmployeeResponse> response = companyRepository.findEmployeesByDepartmentAndDate(departamento, startDate, endDate, idEmpresa);
+        if (response == null) {
+            throw new BusinessRuleException(ErrorCode.FUNCIONARIOS_NAO_ENCONTRADOS);
+        }
         return response;
     }
 

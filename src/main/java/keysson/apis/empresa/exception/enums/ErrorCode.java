@@ -10,6 +10,7 @@ public enum ErrorCode {
     ERRO_INTERNO("Erro interno no servidor.", HttpStatus.INTERNAL_SERVER_ERROR),
     ERRO_CADASTRAR("Erro ao cadastrar empresa", HttpStatus.BAD_REQUEST),
     USUARIOS_NAO_ENCONTRADOS("Quantidade de usuários não encontrada nessa data.", HttpStatus.NOT_FOUND),
+    FUNCIONARIOS_NAO_ENCONTRADOS("Não foram encontrados registros de funcionários.", HttpStatus.NOT_FOUND)
     ;
 
     private final String message;

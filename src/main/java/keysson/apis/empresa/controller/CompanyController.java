@@ -6,14 +6,17 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import keysson.apis.empresa.dto.request.RequestRegisterCompany;
 import keysson.apis.empresa.dto.response.CompanyResponse;
+import keysson.apis.empresa.dto.response.EmployeeResponse;
 import keysson.apis.empresa.dto.response.UserCountResponse;
 import keysson.apis.empresa.exception.BusinessRuleException;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import java.sql.SQLException;
+import java.util.List;
 
 
 public interface CompanyController {
@@ -42,5 +45,28 @@ public interface CompanyController {
             @RequestHeader("Authorization") String token,
             @RequestParam(required = false) String dataInicio,
             @RequestParam(required = false) String dataFim
+    ) throws BusinessRuleException, SQLException;
+
+    @GetMapping("/employees/date")
+    @Operation(
+        summary = "Busca funcionários por data",
+        description = "Busca funcionários por data de início e fim. Se não informado, assume a data atual."
+    )
+    List<EmployeeResponse> searchEmployeesByDate(
+        @RequestHeader("Authorization") String token,
+        @RequestParam(required = false) String dataInicio,
+        @RequestParam(required = false) String dataFim
+    ) throws BusinessRuleException, SQLException;
+
+    @GetMapping("/employees/{departamento}/date")
+    @Operation(
+        summary = "Busca funcionários por departamento e data",
+        description = "Busca funcionários por departamento e data de início e fim. Se não informado, assume a data atual."
+    )
+    List<EmployeeResponse> searchEmployeesByDepartmentAndDate(
+        @RequestHeader("Authorization") String token,
+        @PathVariable String departamento,
+        @RequestParam(required = false) String dataInicio,
+        @RequestParam(required = false) String dataFim
     ) throws BusinessRuleException, SQLException;
 }
