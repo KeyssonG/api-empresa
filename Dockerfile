@@ -1,5 +1,5 @@
 # Etapa 1: Build da aplicação Java
-FROM maven:3.9.9-eclipse-temurin-21 AS builder
+FROM maven:3.9.9-amazoncorretto-21 AS builder
 
 WORKDIR /app
 
@@ -10,8 +10,11 @@ COPY src ./src
 # Executa o build do projeto, gerando o JAR já com o nome desejado
 RUN mvn clean package -DskipTests --no-transfer-progress -DfinalName=empresa
 
+# Renomeia o JAR gerado
+RUN mv target/*.jar /app/empresa.jar
+
 # Etapa 2: Imagem final enxuta para execução
-FROM eclipse-temurin:21-jre-alpine
+FROM amazoncorretto:21
 
 WORKDIR /app
 
