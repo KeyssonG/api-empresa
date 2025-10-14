@@ -52,8 +52,8 @@ public class CompanyRepository {
         """;
 
     private static final String SEARCH_EMPLOYEES_BY_DEPARTMENT_AND_DATE =
-        "SELECT id, nome, departamento, data_criacao, company_id " +
-        "FROM vw_funcionarios " +
+        "SELECT id, nome, departamento, cpf, sexo, data_nascimento, data_criacao, company_id " +
+        "FROM funcionarios " +
         "WHERE data_criacao BETWEEN ? AND ? AND company_id = ?";
 
     public boolean existsByCnpj(String cnpj) {

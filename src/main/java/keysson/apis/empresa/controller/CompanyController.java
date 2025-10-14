@@ -69,4 +69,15 @@ public interface CompanyController {
         @RequestParam(required = false) String dataInicio,
         @RequestParam(required = false) String dataFim
     ) throws BusinessRuleException, SQLException;
+
+    //Em Desenvolvimento
+//    @GetMapping("/employees/{departamento}/date")
+//    @Operation(
+//            summary = "Atualiza dados do funcionário.",
+//            description = "Atualiza dados do funcionário por Id."
+//    )
+//    List<EmployeeResponse> updateEmployeeDataById(
+//            @RequestHeader("Authorization") String token,
+//            @PathVariable String departamento
+//    ) throws BusinessRuleException, SQLException;
 }

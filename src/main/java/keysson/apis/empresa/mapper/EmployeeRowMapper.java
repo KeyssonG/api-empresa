@@ -13,6 +13,9 @@ public class EmployeeRowMapper implements RowMapper<EmployeeResponse> {
                 .id(rs.getLong("id"))
                 .nome(rs.getString("nome"))
                 .departamento(rs.getString("departamento"))
+                .cpf(rs.getString("cpf"))
+                .sexo(rs.getString("sexo"))
+                .dataNascimento(rs.getDate("data_nascimento"))
                 .dataCriacao(rs.getDate("data_criacao"))
                 .companyId(rs.getLong("company_id"))
                 .build();
