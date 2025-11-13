@@ -14,6 +14,7 @@ import org.springframework.stereotype.Repository;
 
 import java.sql.CallableStatement;
 import java.sql.Types;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
@@ -32,29 +33,42 @@ public class CompanyRepository {
     }
 
     private static final String CHECK_EXISTS_CNPJ = """
-        SELECT COUNT(*) 
-        FROM companies 
-        WHERE cnpj = ?
-        """;
+            SELECT COUNT(*)
+            FROM companies
+            WHERE cnpj = ?
+            """;
 
     private static final String CHECK_EXISTS_NUMERO_CONTA = """
-        SELECT COUNT(*) 
-        FROM companies 
-        WHERE numero_conta = ?
-        """;
+            SELECT COUNT(*)
+            FROM companies
+            WHERE numero_conta = ?
+            """;
 
     private static final String SEARCH_USERS_BY_DATE = """
-            SELECT data_criacao, COUNT(*) AS total_usuarios
-            FROM users
-            WHERE data_criacao BETWEEN ? AND ?
-            GROUP BY data_criacao
-            ORDER BY data_criacao;
-        """;
+                SELECT data_criacao, COUNT(*) AS total_usuarios
+                FROM users
+                WHERE data_criacao BETWEEN ? AND ?
+                ORDER BY data_criacao;
+            """;
 
-    private static final String SEARCH_EMPLOYEES_BY_DEPARTMENT_AND_DATE =
-        "SELECT id, nome, departamento, cpf, sexo, data_nascimento, data_criacao, company_id " +
-        "FROM funcionarios " +
-        "WHERE data_criacao BETWEEN ? AND ? AND company_id = ?";
+    private static final String SEARCH_EMPLOYEES_BY_DEPARTMENT_AND_DATE_BASE = """
+                    SELECT
+                f.id,
+                f.nome,
+                f.departamento,
+                c.telefone,
+                c.email,
+                f.cpf,
+                e.endereco,
+                f.sexo,
+                f.data_nascimento,
+                f.data_criacao,
+                f.company_id
+            FROM funcionarios f
+            JOIN contatos c ON c.user_id  = f.id
+            JOIN enderecamento e ON e.id  = f.id
+                    WHERE f.data_criacao BETWEEN ? AND ? AND f.company_id = ?
+                    """;
 
     public boolean existsByCnpj(String cnpj) {
         logger.info("Verificando existência de empresa com CNPJ: {}", cnpj);
@@ -73,8 +87,8 @@ public class CompanyRepository {
     }
 
     public CompanyRegistrationResult save(String name, String email, String cnpj,
-                                         int numeroConta, String password,
-                                         String username, int status) {
+            int numeroConta, String password,
+            String username, int status) {
 
         try {
             UUID consumerId = UUID.randomUUID();
@@ -107,8 +121,7 @@ public class CompanyRepository {
                     new SqlParameter("p_username", Types.VARCHAR),
                     new SqlParameter("p_password", Types.VARCHAR),
                     new SqlOutParameter("out_result", Types.INTEGER),
-                    new SqlOutParameter("out_company_id", Types.INTEGER)
-            ));
+                    new SqlOutParameter("out_company_id", Types.INTEGER)));
 
             logger.debug("Map result: {}", result);
 
@@ -133,27 +146,44 @@ public class CompanyRepository {
                 return null;
             });
         } catch (Exception e) {
-            logger.error("Erro ao buscar usuários entre as datas: {} e {}. Detalhes: {}", startDate, endDate, e.getMessage());
+            logger.error("Erro ao buscar usuários entre as datas: {} e {}. Detalhes: {}", startDate, endDate,
+                    e.getMessage());
             throw new RuntimeException("Erro ao buscar usuários por data", e);
         }
     }
 
-    public List<EmployeeResponse> findEmployeesByDepartmentAndDate(String departamento, Date startDate, Date endDate, Integer idEmpresa) {
-        logger.info("Buscando funcionários entre as datas: {} e {}, departamento: {} e company_id: {}", startDate, endDate, departamento, idEmpresa);
-        String sql = SEARCH_EMPLOYEES_BY_DEPARTMENT_AND_DATE;
-        Object[] params;
-        int[] types;
+    public List<EmployeeResponse> findEmployeesByDepartmentAndDate(String departamento, Date startDate, Date endDate,
+            Integer idEmpresa) {
+        logger.info("Buscando funcionários entre as datas: {} e {}, departamento: {} e company_id: {}", startDate,
+                endDate, departamento, idEmpresa);
+
+        StringBuilder sql = new StringBuilder(SEARCH_EMPLOYEES_BY_DEPARTMENT_AND_DATE_BASE.trim());
+        List<Object> params = new ArrayList<>();
+        List<Integer> types = new ArrayList<>();
+
+        // Parâmetros base: startDate, endDate, idEmpresa
+        params.add(new java.sql.Date(startDate.getTime()));
+        params.add(new java.sql.Date(endDate.getTime()));
+        params.add(idEmpresa);
+        types.add(Types.DATE);
+        types.add(Types.DATE);
+        types.add(Types.INTEGER);
+
+        // Adiciona filtro de departamento se fornecido
         if (departamento != null && !departamento.isEmpty()) {
-            sql += " AND departamento = ?";
-            params = new Object[]{new java.sql.Date(startDate.getTime()), new java.sql.Date(endDate.getTime()), idEmpresa, departamento};
-            types = new int[]{Types.DATE, Types.DATE, Types.INTEGER, Types.VARCHAR};
-        } else {
-            params = new Object[]{new java.sql.Date(startDate.getTime()), new java.sql.Date(endDate.getTime()), idEmpresa};
-            types = new int[]{Types.DATE, Types.DATE, Types.INTEGER};
+            sql.append(" AND departamento = ?");
+            params.add(departamento);
+            types.add(Types.VARCHAR);
         }
-        sql += " ORDER BY data_criacao;";
+
+        sql.append(" ORDER BY data_criacao");
+
         try {
-            return jdbcTemplate.query(sql, params, types, new EmployeeRowMapper());
+            return jdbcTemplate.query(
+                    sql.toString(),
+                    params.toArray(),
+                    types.stream().mapToInt(i -> i).toArray(),
+                    new EmployeeRowMapper());
         } catch (Exception e) {
             logger.error("Erro ao buscar funcionários: {}", e.getMessage());
             throw new RuntimeException("Erro ao buscar funcionários por departamento, data e empresa", e);
