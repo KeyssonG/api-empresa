@@ -1,6 +1,7 @@
 pipeline {
     agent any
 
+
     environment {
         DOCKERHUB_IMAGE = "keyssong/empresa"
         DEPLOYMENT_FILE = "k8s/empresa-deployment.yaml"

@@ -52,7 +52,7 @@ public class CompanyRepository {
             """;
 
     private static final String SEARCH_EMPLOYEES_BY_DEPARTMENT_AND_DATE_BASE = """
-                    SELECT
+                SELECT
                 f.id,
                 f.nome,
                 f.departamento,
