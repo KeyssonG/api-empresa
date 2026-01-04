@@ -48,6 +48,7 @@ public class CompanyRepository {
                 SELECT data_criacao, COUNT(*) AS total_usuarios
                 FROM users
                 WHERE data_criacao BETWEEN ? AND ?
+                GROUP BY data_criacao
                 ORDER BY data_criacao;
             """;
 
