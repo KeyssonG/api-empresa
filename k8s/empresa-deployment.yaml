@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: empresa-container
-          image: keyssong/empresa:latest  # 🔹 Buscar no Docker Hub
+          image: keyssong/empresa:latest
           imagePullPolicy: Always           # 🔹 Sempre buscar a versão mais recente
           ports:
             - containerPort: 8085
