@@ -11,7 +11,7 @@
 	<groupId>keysson.apis</groupId>
 	<artifactId>company</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>company</name>
+	<name>api-empresa</name>
 	<description>API de gestão de empresas</description>
 	<url/>
 	<licenses>
@@ -112,6 +112,17 @@
 			<artifactId>resilience4j-spring-boot2</artifactId>
 			<version>1.7.1</version>
 		</dependency>
+
+		 <!-- Log4j2 -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-log4j2</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.apache.logging.log4j</groupId>
+			<artifactId>log4j-layout-template-json</artifactId>
+  		</dependency>
 	</dependencies>
 
 
