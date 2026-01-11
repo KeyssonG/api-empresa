@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <include resource="org/springframework/boot/logging/logback/base.xml"/>
+
+    <appender name="LOGSTASH" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+            <customFields>{"app":"sua-aplicacao","environment":"producao"}</customFields>
+        </encoder>
+    </appender>
+
+    <!-- Envia logs estruturados para o console (stdout) -->
+    <root level="INFO">
+        <appender-ref ref="LOGSTASH"/>
+    </root>
+</configuration>
