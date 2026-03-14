@@ -9,8 +9,9 @@ spec:
   selector:
     app: empresa
   ports:
+    - name: http
     - protocol: TCP
       port: 8085
       targetPort: 8085
-      nodPort: 31001
+      nodePortSi: 31001
   type: LoadBalancer  # Ou NodePort
