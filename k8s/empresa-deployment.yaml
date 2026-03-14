@@ -1,29 +1,18 @@
-apiVersion: apps/v1
-kind: Deployment
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
 metadata:
-  name: empresa-deployment
+  name: empresa-servicemonitor
+  namespace: monitoring
   labels:
-    app: empresa
-    logging: enabled
+    release: monitoring
 spec:
-  replicas: 1
   selector:
     matchLabels:
       app: empresa
-  template:
-    metadata:
-      labels:
-        app: empresa
-        logging: enabled
-    spec:
-      containers:
-        - name: empresa-container
-          image: keyssong/empresa:latest
-          imagePullPolicy: Always           # 🔹 Sempre buscar a versão mais recente
-          ports:
-            - containerPort: 8085
-          envFrom:
-            - configMapRef:
-                name: app-config
-            - secretRef:
-                name: app-secret
+  namespaceSelector:
+    matchNames:
+      - producao
+  endpoints:
+    - port: http
+      path: /actuator/prometheus
+      interval: 15s
