@@ -64,9 +64,12 @@ public class JwtUtil {
         return extractAllClaims(token).get("companyId", Integer.class);
     }
 
-    public UUID extractConsumerId(String token) {
-        String consumerIdStr = extractAllClaims(token).get("consumerId", String.class);
-        return UUID.fromString(consumerIdStr);
+    public String extractRole(String token) {
+        return extractAllClaims(token).get("role", String.class);
+    }
+
+    public java.util.List<java.util.Map<String, Object>> extractModules(String token) {
+        return (java.util.List<java.util.Map<String, Object>>) extractAllClaims(token).get("modules");
     }
 
     public Date extractExpiration(String token) {
