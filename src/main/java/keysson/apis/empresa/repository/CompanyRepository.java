@@ -53,21 +53,15 @@ public class CompanyRepository {
             """;
 
     private static final String SEARCH_EMPLOYEES_BY_DEPARTMENT_AND_DATE_BASE = """
-                SELECT
-                f.id,
-                f.nome,
-                f.departamento,
-                c.telefone,
-                c.email,
-                f.cpf,
-                e.endereco,
-                f.sexo,
-                f.data_nascimento,
-                f.data_criacao,
-                f.company_id
-            FROM funcionarios f
-            JOIN contatos c ON c.user_id  = f.id
-            JOIN enderecamento e ON e.id  = f.id
+            select f.id, f.nome, f.departamento, c.telefone, c.email, f.cpf, e.endereco
+                                ,f.sexo, f.data_nascimento, f.data_criacao, f.company_id
+                                from funcionarios f
+                                join contatos c
+                                on c.company_id = f.company_id
+                                and c.user_id  = c.user_id
+                                join enderecamento e
+                                on e.id = f.id
+                                and e.id = c.user_id
                     WHERE f.data_criacao BETWEEN ? AND ? AND f.company_id = ?
                     """;
 
