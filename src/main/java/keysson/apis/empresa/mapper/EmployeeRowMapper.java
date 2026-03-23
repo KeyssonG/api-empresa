@@ -12,7 +12,7 @@ public class EmployeeRowMapper implements RowMapper<EmployeeResponse> {
         return EmployeeResponse.builder()
                 .id(rs.getLong("id"))
                 .nome(rs.getString("nome"))
-                .departamento(rs.getString("departamento"))
+                .departamento(rs.getString("departamento_id"))
                 .telefone(rs.getString("telefone"))
                 .email(rs.getString("email"))
                 .cpf(rs.getString("cpf"))

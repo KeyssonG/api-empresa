@@ -84,4 +84,13 @@ public class CompanyControllerImpl implements CompanyController{
         return companyService.searchEmployeesByDepartmentAndDate(departamento, inicioFormatado, fimFormatado);
     }
 
+    @Override
+    public void deleteEmployee(String token, Integer companyId, Integer userId) throws BusinessRuleException, SQLException {
+        logger.info("Requisição recebida para deletar funcionário. Empresa: {}, Usuário: {}", companyId, userId);
+
+        companyService.deleteEmployee(userId, companyId);
+
+        logger.info("Processo de deleção finalizado com sucesso para o ID: {}", userId);
+    }
+
 }
