@@ -9,6 +9,7 @@ import keysson.apis.empresa.dto.response.CompanyResponse;
 import keysson.apis.empresa.dto.response.EmployeeResponse;
 import keysson.apis.empresa.dto.response.UserCountResponse;
 import keysson.apis.empresa.exception.BusinessRuleException;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -68,6 +69,16 @@ public interface CompanyController {
         @PathVariable String departamento,
         @RequestParam(required = false) String dataInicio,
         @RequestParam(required = false) String dataFim
+    ) throws BusinessRuleException, SQLException;
+
+    @DeleteMapping("/employees/{companyId}/{userId}")
+    @Operation(
+            summary = "Deleta um funcionário"
+    )
+    void deleteEmployee(
+            @RequestHeader("Authorization") String token,
+            @PathVariable("companyId") Integer companyId,
+            @PathVariable("userId") Integer userId
     ) throws BusinessRuleException, SQLException;
 
 }

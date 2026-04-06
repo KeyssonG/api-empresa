@@ -53,17 +53,28 @@ public class CompanyRepository {
             """;
 
     private static final String SEARCH_EMPLOYEES_BY_DEPARTMENT_AND_DATE_BASE = """
-            select f.id, f.nome, f.departamento, c.telefone, c.email, f.cpf, e.endereco
-                                ,f.sexo, f.data_nascimento, f.data_criacao, f.company_id
-                                from funcionarios f
-                                join contatos c
-                                on c.company_id = f.company_id
-                                and c.user_id  = c.user_id
-                                join enderecamento e
-                                on e.id = f.id
-                                and e.id = c.user_id
+                SELECT
+                f.id,
+                f.nome,
+                f.departamento_id,
+                c.telefone,
+                c.email,
+                f.cpf,
+                e.endereco,
+                f.sexo,
+                f.data_nascimento,
+                f.data_criacao,
+                f.company_id
+            FROM funcionarios f
+            JOIN contatos c ON c.user_id  = f.id
+            JOIN enderecamento e ON e.id  = f.id
                     WHERE f.data_criacao BETWEEN ? AND ? AND f.company_id = ?
                     """;
+
+    private static final String DELETE_CONTATOS = "DELETE FROM contatos WHERE user_id = ? AND company_id = ?";
+    private static final String DELETE_FUNCIONARIO = "DELETE FROM funcionarios WHERE id = ? AND company_id = ?";
+    private static final String DELETE_ENDERECO = "DELETE FROM enderecamento WHERE id = ?";
+    private static final String DELETE_USER = "DELETE FROM users WHERE id = ? AND company_id = ?";
 
     public boolean existsByCnpj(String cnpj) {
         logger.info("Verificando existência de empresa com CNPJ: {}", cnpj);
@@ -182,6 +193,38 @@ public class CompanyRepository {
         } catch (Exception e) {
             logger.error("Erro ao buscar funcionários: {}", e.getMessage());
             throw new RuntimeException("Erro ao buscar funcionários por departamento, data e empresa", e);
+        }
+    }
+
+    public void deleteEmployee(Integer employeeId, Integer companyId) {
+        logger.info("Iniciando exclusão do funcionário ID: {} da empresa ID: {}", employeeId, companyId);
+
+        try {
+            // 1. Deleta Contatos (Tabela Filha)
+            int contatosDeletados = jdbcTemplate.update(DELETE_CONTATOS, employeeId, companyId);
+            logger.debug("Contatos removidos: {}", contatosDeletados);
+
+            // 2. Deleta Funcionários (Tabela Filha)
+            int funcionariosDeletados = jdbcTemplate.update(DELETE_FUNCIONARIO, employeeId, companyId);
+            logger.debug("Registros em funcionários removidos: {}", funcionariosDeletados);
+
+            // 3. Deleta Endereçamento (Tabela Filha - baseada apenas no ID conforme sua proc)
+            int enderecosDeletados = jdbcTemplate.update(DELETE_ENDERECO, employeeId);
+            logger.debug("Endereços removidos: {}", enderecosDeletados);
+
+            // 4. Deleta User (Tabela Pai)
+            int usersDeletados = jdbcTemplate.update(DELETE_USER, employeeId, companyId);
+            logger.debug("Usuário removido: {}", usersDeletados);
+
+            if (usersDeletados == 0) {
+                logger.warn("Nenhum usuário foi encontrado com o ID: {} para a empresa: {}", employeeId, companyId);
+            } else {
+                logger.info("Funcionário ID: {} excluído com sucesso.", employeeId);
+            }
+
+        } catch (Exception e) {
+            logger.error("Erro ao deletar funcionário ID: {}. Erro: {}", employeeId, e.getMessage());
+            throw new RuntimeException("Falha na exclusão do funcionário", e);
         }
     }
 }

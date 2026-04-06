@@ -13,13 +13,13 @@ import keysson.apis.empresa.dto.response.UserCountResponse;
 import keysson.apis.empresa.exception.BusinessRuleException;
 import keysson.apis.empresa.exception.enums.ErrorCode;
 import keysson.apis.empresa.repository.CompanyRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.SQLException;
 import java.util.Date;
@@ -164,6 +164,21 @@ public class CompanyService {
             throw new BusinessRuleException(ErrorCode.FUNCIONARIOS_NAO_ENCONTRADOS);
         }
         return response;
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    public void deleteEmployee(Integer employeeId, Integer idEmpresa) throws BusinessRuleException {
+
+        logger.info("Iniciando processo de exclusão para o funcionário ID: {}", employeeId);
+
+        try {
+            companyRepository.deleteEmployee(employeeId, idEmpresa);
+
+            logger.info("Funcionário {} removido com sucesso pela empresa {}", employeeId, idEmpresa);
+        } catch (Exception e) {
+            logger.error("Falha ao excluir funcionário ID: {}. Detalhes: {}", employeeId, e.getMessage());
+            throw new BusinessRuleException(ErrorCode.ERRO_AO_DELETAR_FUNCIONARIO);
+        }
     }
 
 }
