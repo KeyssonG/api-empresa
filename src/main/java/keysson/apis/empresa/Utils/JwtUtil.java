@@ -19,11 +19,14 @@ import static java.util.concurrent.TimeUnit.MILLISECONDS;
 @Getter
 public class JwtUtil {
 
+    @Value("${SECRET_KEY}")
+    private String secretKey;
 
     private final long EXPIRATION_TIME = MILLISECONDS.toMillis(86400000);
     private final Key key;
 
-    public JwtUtil(@Value("C6slIxtVM5y1mBrCphrqygYNVoN7t5V/03NVfJddayQ=") String secretKey) {
+    public JwtUtil(@Value("${SECRET_KEY}") String secretKey) {
+        this.secretKey = secretKey;
         this.key = Keys.hmacShaKeyFor(secretKey.getBytes());
     }
 
